@@ -1,25 +1,10 @@
 import React, {useState, useEffect, useRef} from 'react';
-import DatePicker from 'react-native-date-picker';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-  Button,
-  Alert,
-  Image,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {showModal, hideModal} from '../actions/ModalActions';
 import {
   connectToServer,
-  initDiffieHellman,
   sendDataToServer,
 } from '../actions/ConnectionActions';
 
@@ -69,114 +54,67 @@ const SignUpScreen = (props) => {
     console.log("Async button end")
   };
 
-  return (
-    <View style={styles.mainContainer}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.elementContainer}>
-          <TextInput
-            style={styles.inputStyle}
-            value={loginValue}
-            onChangeText={(text) => {
-              setLoginValue(text);
-              setErrorText('');
-            }}
-            placeholder="Login"></TextInput>
-          <TextInput
-            style={styles.inputStyle}
-            value={passwordValue}
-            onChangeText={(text) => {
-              setPasswordValue(text);
-              setErrorText('');
-            }}
-            placeholder="Password"></TextInput>
-          <TextInput
-            style={styles.inputStyle}
-            value={firstNameValue}
-            onChangeText={(text) => {
-              setfirstNameValue(text);
-            }}
-            placeholder="First name"></TextInput>
-          <TextInput
-            style={styles.inputStyle}
-            value={lastNameValue}
-            onChangeText={(text) => {
-              setlastNameValue(text);
-            }}
-            placeholder="Last name"></TextInput>
-          <Text style={styles.birthDateText}>Birth date</Text>
-          <DatePicker
-            style={styles.birthDatePicker}
-            date={date}
-            mode="date"
-            locale="en-GB"
-            androidVariant="nativeAndroid"
-            onDateChange={setDate}
-          />
-          
-          <Text style={styles.inputErrorText}>{errorText}</Text>
-          <Text style={styles.inputSuccessText}>{successText}</Text>
 
-          <ActivityIndicator animating={loading} size="large" color="#67daf9"/>
-          <TouchableOpacity
-            style={styles.signUpButton}
-            onPress={signUpButtonPressed}>
-            <Text style={{fontSize: 20}}>Sign up</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+  //TO DO: adapt screen
+  return (
+    <div></div>
+    // <View style={styles.mainContainer}>
+    //   <ScrollView style={styles.scrollView}>
+    //     <View style={styles.elementContainer}>
+    //       <TextInput
+    //         style={styles.inputStyle}
+    //         value={loginValue}
+    //         onChangeText={(text) => {
+    //           setLoginValue(text);
+    //           setErrorText('');
+    //         }}
+    //         placeholder="Login"></TextInput>
+    //       <TextInput
+    //         style={styles.inputStyle}
+    //         value={passwordValue}
+    //         onChangeText={(text) => {
+    //           setPasswordValue(text);
+    //           setErrorText('');
+    //         }}
+    //         placeholder="Password"></TextInput>
+    //       <TextInput
+    //         style={styles.inputStyle}
+    //         value={firstNameValue}
+    //         onChangeText={(text) => {
+    //           setfirstNameValue(text);
+    //         }}
+    //         placeholder="First name"></TextInput>
+    //       <TextInput
+    //         style={styles.inputStyle}
+    //         value={lastNameValue}
+    //         onChangeText={(text) => {
+    //           setlastNameValue(text);
+    //         }}
+    //         placeholder="Last name"></TextInput>
+    //       <Text style={styles.birthDateText}>Birth date</Text>
+    //       <DatePicker
+    //         style={styles.birthDatePicker}
+    //         date={date}
+    //         mode="date"
+    //         locale="en-GB"
+    //         androidVariant="nativeAndroid"
+    //         onDateChange={setDate}
+    //       />
+          
+    //       <Text style={styles.inputErrorText}>{errorText}</Text>
+    //       <Text style={styles.inputSuccessText}>{successText}</Text>
+
+    //       <ActivityIndicator animating={loading} size="large" color="#67daf9"/>
+    //       <TouchableOpacity
+    //         style={styles.signUpButton}
+    //         onPress={signUpButtonPressed}>
+    //         <Text style={{fontSize: 20}}>Sign up</Text>
+    //       </TouchableOpacity>
+    //     </View>
+    //   </ScrollView>
+    // </View>
   );
 };
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    alignItems: 'center',
-  },
-  elementContainer: {
-    paddingTop: 60,
-    alignItems: 'center',
-    paddingBottom: 60,
-  },
-  scrollView: {
-    width: '100%',
-  },
-  inputStyle: {
-    height: 50,
-    width: 250,
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingLeft: 20,
-    borderColor: '#67daf9',
-    marginTop: 30,
-  },
-  signUpButton: {
-    width: 200,
-    height: 50,
-    marginTop: 110,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#67daf9',
-  },
-  birthDateText: {
-    marginTop: 50,
-    fontSize: 20,
-    color: '#000',
-  },
-  birthDatePicker: {
-    marginTop: 10,
-    marginBottom: 50,
-  },
-  inputErrorText: {
-    color: '#a52a2a',
-    height: 120,
-    marginTop: 0,
-  },
-  inputSuccessText: {
-    color: '#008000',
-    marginTop: -120,
-  },
-});
 
 const mapStateToProps = (state) => {
   const {connectionReducer, ModalReducer} = state;
@@ -192,7 +130,6 @@ const mapDispatchToProps = (dispatch) =>
       hideModal,
       showModal,
       connectToServer,
-      initDiffieHellman,
       sendDataToServer,
     },
     dispatch,

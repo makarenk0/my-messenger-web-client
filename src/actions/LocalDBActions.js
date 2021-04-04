@@ -12,31 +12,31 @@ export const saveDocToDB = (docToSave, callback) => (
     }
   );
 
-  export const loadDocFromDB = (parametrsObj, callback) => (
+  export const loadDocFromDB = (_id, callback) => (
     {
       type: 'LOAD_DOC',
-      payload: {'parametrsObj': parametrsObj, 'callback': callback}
+      payload: {'_id': _id, 'callback': callback}
     }
   );
 
-  export const removeDocFromDB = (parametrsObj, multi, callback) => (
+  export const removeDocFromDB = (_id, callback) => (
     {
       type: 'REMOVE_DOC',
-      payload: {'parametrsObj': parametrsObj, 'multi': multi, 'callback': callback}
+      payload: {'_id': _id, 'callback': callback}
     }
   );
 
-  export const addOneToArray = (parametrsObj, toAdd, callback) => (
+  export const addOneToArray = (_id, fieldName, toAdd, callback) => (
     {
       type: 'ADD_ONE_TO_ARRAY',
-      payload: {'parametrsObj': parametrsObj, 'toAdd': toAdd, 'callback': callback}
+      payload: {'_id': _id, 'fieldName': fieldName, 'toAdd': toAdd, 'callback': callback}
     }
   );
 
-  export const addManyToArray = (parametrsObj, arrayField, toAdd, callback) => (
+  export const addManyToArray = (_id, fieldName, toAdd, callback) => (
     {
       type: 'ADD_MANY_TO_ARRAY',
-      payload: {'parametrsObj': parametrsObj, 'arrayField': arrayField, 'toAdd': toAdd, 'callback': callback}
+      payload: {'_id': _id, 'fieldName': fieldName, 'toAdd': toAdd, 'callback': callback}
     }
   );
 
@@ -47,17 +47,17 @@ export const saveDocToDB = (docToSave, callback) => (
     }
   );
 
-  export const updateValue = (parametrsObj, toUpdate, callback) => (
+  export const updateValue = (_id, toUpdate, callback) => (
     {
       type: 'UPDATE_VALUE',
-      payload: {'parametrsObj': parametrsObj, 'toUpdate': toUpdate, 'callback': callback}
+      payload: {'_id': _id, 'toUpdate': toUpdate, 'callback': callback}
     }
   );
 
-  export const getProjected = (parametrsObj, projection, callback) => (
+  export const getProjected = (_id, projection, callback) => (
     {
       type: 'GET_PROJECTED',
-      payload: {'parametrsObj': parametrsObj, 'projection': projection, 'callback': callback}
+      payload: {'_id': _id, 'projection': projection, 'callback': callback}
     }
   );
 

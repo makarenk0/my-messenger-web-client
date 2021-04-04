@@ -3,7 +3,8 @@ import { useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { showModal, hideModal } from "../actions/ModalActions";
-import { Form, Button } from "react-bootstrap";
+import { Form, Button, Alert } from "react-bootstrap";
+import logo from '../images/logo.png'
 import {
   connectToServer,
   sendDataToServer,
@@ -16,8 +17,9 @@ const LogInScreen = (props) => {
   const [errorText, setErrorText] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberIsSelected, setRemember] = useState(false);
-  const [loginValue, setLoginValue] = React.useState("");
-  const [passwordValue, setPasswordValue] = React.useState("");
+  const [loginValue, setLoginValue] = useState("");
+  const [passwordValue, setPasswordValue] = useState("");
+  const [show, setShow] = useState(false);
 
   let history = useHistory();
 
@@ -39,6 +41,7 @@ const LogInScreen = (props) => {
 
   const logIntoAccount = (login, password, rememberUser) => {
     setErrorText("");
+    setShow(false)
     let regObj = {
       Login: login,
       Password: password,
@@ -46,9 +49,9 @@ const LogInScreen = (props) => {
     setLoading(true);
 
     props.sendDataToServer(2, true, regObj, async (response) => {
-      setLoading(false);
-      if (response.Status == "error") {
+      if (response.Status === "error") {
         setErrorText(response.Details);
+        setShow(true)
       } else {
         console.log(response);
         props.setSessionTokenAndId(response.SessionToken, response.Id);
@@ -111,7 +114,8 @@ const LogInScreen = (props) => {
     connect();
   }, []);
 
-  const signInButtonPressed = () => {
+  const signInButtonPressed = (e) => {
+    
     logIntoAccount(loginValue, passwordValue, rememberIsSelected);
 
     //props.hideModal();
@@ -126,27 +130,56 @@ const LogInScreen = (props) => {
 
   const signUpButtonPressed = () => {
     //props.showModal('Success', {displayText: 'Connecting to server...'});
-    props.navigation.navigate("Sign Up", { name: "Jane" });
+    history.push("/signUp");
   };
 
-  return (
-    <Form className="loginForm">
-      <Form.Group controlId="formBasicEmail">
-        <Form.Label>Login</Form.Label>
-        <Form.Control type="text" placeholder="Enter email" onChange={e => setLoginValue(e.target.value)} value={loginValue} />
-      </Form.Group>
+  
 
-      <Form.Group controlId="formBasicPassword">
-        <Form.Label>Password</Form.Label>
-        <Form.Control type="password" placeholder="Password" onChange={e => setPasswordValue(e.target.value)} value={passwordValue} />
-      </Form.Group>
-      <Form.Group controlId="formBasicCheckbox">
-        <Form.Check type="checkbox" label="Remember me" />
-      </Form.Group>
-      <Button variant="primary" type="submit" onClick={signInButtonPressed}>
-        Submit
-      </Button>
-    </Form>
+  return (
+    <div className="Login">
+      <img src={logo} className="loginLogo"></img>
+      <Form className="loginForm">
+      <Alert key={"logInAlert"} className="logInError" show={show} variant={"danger"} onClose={() => setShow(false)} dismissible>{errorText}</Alert>
+        <Form.Group size="lg" controlId="text">
+          <Form.Label>Login</Form.Label>
+          <Form.Control
+            autoFocus
+            type="text"
+            onChange={e => setLoginValue(e.target.value)} value={loginValue}
+          />
+        </Form.Group>
+        <Form.Group size="lg" controlId="password">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            onChange={e => setPasswordValue(e.target.value)} value={passwordValue}
+          />
+        </Form.Group>
+        <Button block size="lg" type="button" onClick={signInButtonPressed}>
+          Log in
+        </Button>
+        <Button block size="lg" type="button" variant="outline-info" onClick={signUpButtonPressed}>
+          Sign up
+        </Button>
+      </Form>
+    </div>
+    // <Form className="loginForm">
+    //   <Form.Group controlId="formBasicEmail">
+    //     <Form.Label>Login</Form.Label>
+    //     <Form.Control type="text" placeholder="Enter email" onChange={e => setLoginValue(e.target.value)} value={loginValue} />
+    //   </Form.Group>
+
+    //   <Form.Group controlId="formBasicPassword">
+    //     <Form.Label>Password</Form.Label>
+    //     <Form.Control type="password" placeholder="Password" onChange={e => setPasswordValue(e.target.value)} value={passwordValue} />
+    //   </Form.Group>
+    //   <Form.Group controlId="formBasicCheckbox">
+    //     <Form.Check type="checkbox" label="Remember me" />
+    //   </Form.Group>
+    //   <Button variant="primary" type="submit" onClick={signInButtonPressed}>
+    //     Submit
+    //   </Button>
+    // </Form>
     // <div>
     //   <input onChange={e => setLoginValue(e.target.value)} value={loginValue}></input>
     //   <input onChange={e => setPasswordValue(e.target.value)} value={passwordValue}></input>
