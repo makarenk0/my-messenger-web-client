@@ -1,34 +1,203 @@
-
 @media all and (min-width: 480px) {
-    .Login {
-      padding: 60px 0;
-      margin-top: 20px;
+  .login {
+    padding: 60px 0;
+    margin-top: 20px;
 
-      .loginForm{
-          margin-top: 80px;
-      }
-      .loginLogo{
-          width: 200px;
-          display: block;
-          margin: auto;
-      }
-      .logInError{
-        position: absolute;
-        margin-top: -60px;
-        width: 320px;
+    .loginForm {
+      margin-top: 80px;
+    }
+    .loginLogo {
+      width: 200px;
+      display: block;
+      margin: auto;
+    }
+    .loginCenter {
+      width: 50px;
+      margin-top: -115px;
+      position: absolute;
+      margin-left: 50%;
+      transform: translate(-50%);
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
     }
-  
-    .Login form {
-      margin: 0 auto;
-      max-width: 320px;
-    }
-
-    .chatsPanel{
-      width: 400px;
-      height: 100vh;
-      border-width: 1px;
-      border-color: black;
-      border-style: solid;
+    .logInError {
+      position: absolute;
+      margin-top: -60px;
+      width: 320px;
     }
   }
+
+  .login form {
+    margin: 0 auto;
+    max-width: 320px;
+  }
+}
+
+@media all and (min-width: 480px) {
+  .signUp {
+    padding: 60px 0;
+    margin-top: 20px;
+
+    .signUpForm {
+      margin-top: 80px;
+    }
+    .loginLogo {
+      width: 200px;
+      display: block;
+      margin: auto;
+    }
+    .loginCenter {
+      width: 50px;
+      margin-top: -115px;
+      position: absolute;
+      margin-left: 50%;
+      transform: translate(-50%);
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    }
+    .signUpError {
+      position: absolute;
+      margin-top: -60px;
+      margin-left: 50%;
+      transform: translate(-50%);
+      width: 530px;
+    }
+
+    .datePicker {
+      width: 100%;
+    }
+
+    .react-datepicker__input-container input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      padding-left: 10px;
+      &::after {
+        border: 1px solid #ced4da;
+      }
+    }
+    .react-datepicker__input-container {
+      border: none;
+    }
+  }
+
+  .signUp form {
+    margin: 0 auto;
+    max-width: 320px;
+  }
+}
+
+.chatRepresentorContainer {
+  display: table;
+  width: 100%;
+  height: 60px;
+  border: 1px solid #dedede;
+
+  &:active{
+    background-color: #67daf9;
+  }
+
+  .chatIcon {
+    display: table-cell;
+    width: 60px;
+    height: 100%;
+    div {
+      margin-top: 5px;
+      margin-left: 5px;
+      .fontAwesomeIcon {
+        margin-left: 50%;
+        margin-top: 8px;
+        transform: translate(-50%);
+      }
+    }
+  }
+
+  .newMessagesCounterBlock {
+    display: table-cell;
+    .newMessagesCounterBox {
+      margin-top: 15px;
+      p {
+        float: right;
+        background-color: #67daf9;
+        width: fit-content;
+        padding-left: 5px;
+        padding-right: 5px;
+        border-radius: 10px;
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .chatNameBlock {
+    display: table-cell;
+    .chatNameBox {
+      margin-left: 15px;
+      p {
+        float: left;
+        font-family: Arial;
+        font-weight: bold;
+      }
+    }
+  }
+}
+.homeScreenContainer{
+  display: table;
+  
+  .chatsPanel {
+    display: table-cell;
+    width: 400px;
+    height: 100vh;
+    border-right: 1px solid #dedede;
+    .topPanel{
+      height: 50px;
+      padding-top: 5px;
+      width: 100%;
+      background-color: #100C08;
+      display: table;
+      .slidePaneButton{
+        display: table-cell;
+      }
+      .appName{
+        display: table-cell;
+        vertical-align: middle;
+        p{
+          color: aliceblue;
+          font-size: 25px;
+          font-weight: bold;
+          margin-top: 5px;
+        }
+        
+      }
+      .appLogo{
+        display: table-cell;
+        .homeScreenLogo{
+          width: 40px;
+          margin-top: 5px;
+        }
+      }
+    }
+  }
+
+
+  .chatScreen{
+    display: table-cell;
+  }
+}
+
+
+

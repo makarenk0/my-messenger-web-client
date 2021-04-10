@@ -4,7 +4,8 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { showModal, hideModal } from "../actions/ModalActions";
 import { Form, Button, Alert } from "react-bootstrap";
-import logo from '../images/logo.png'
+import logo from '../images/logoLoader.png'
+import logoCenter from '../images/message64.png'
 import {
   connectToServer,
   sendDataToServer,
@@ -13,7 +14,6 @@ import {
 import { LOCAL_SERVER_IP, CONNECTING_TIMEOUT_MILLIS } from "../configs";
 
 const LogInScreen = (props) => {
-  //props.connectToServer('192.168.1.19', 20)
   const [errorText, setErrorText] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberIsSelected, setRemember] = useState(false);
@@ -117,15 +117,6 @@ const LogInScreen = (props) => {
   const signInButtonPressed = (e) => {
     
     logIntoAccount(loginValue, passwordValue, rememberIsSelected);
-
-    //props.hideModal();
-    //props.connectToServer('192.168.1.19', 20);
-    //console.log(props.connectToServer);
-    //props.showModal({id: 'Success'});
-    // props.sendDataToServer(1, "hello from encrypted client", (dataFromServer) => {
-    //   console.log("Data from server decrypted:")
-    //   console.log(dataFromServer)
-    // })
   };
 
   const signUpButtonPressed = () => {
@@ -136,8 +127,10 @@ const LogInScreen = (props) => {
   
 
   return (
-    <div className="Login">
-      <img src={logo} className="loginLogo"></img>
+    <div className="login">
+      <img src={logo} style={{animation: `spin 3s linear infinite`}} className="loginLogo"> 
+      </img>
+      <img src={logoCenter} className="loginCenter"></img>
       <Form className="loginForm">
       <Alert key={"logInAlert"} className="logInError" show={show} variant={"danger"} onClose={() => setShow(false)} dismissible>{errorText}</Alert>
         <Form.Group size="lg" controlId="text">

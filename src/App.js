@@ -1,5 +1,6 @@
 import logo from "./logo.svg";
 import "./App.css";
+import "react-datepicker/dist/react-datepicker.css";
 import "./App.scss"
 
 import {Provider} from 'react-redux';
@@ -12,6 +13,12 @@ import SignUpScreen from './components/SignUpScreen'
 import HomeScreen from './components/HomeScreen'
 import {combineReducers} from 'redux';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+import { faCheckSquare, faCoffee, faUser, faUsers, faBars } from '@fortawesome/free-solid-svg-icons'
+
+library.add(fab, faCheckSquare, faCoffee, faUser, faUsers, faBars)
 
 const store = createStore(combineReducers({connectionReducer, localDBReducer}))
 

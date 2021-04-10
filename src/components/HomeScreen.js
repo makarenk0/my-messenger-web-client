@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { showModal, hideModal } from "../actions/ModalActions";
+import ChatScreen from './ChatScreen';
 import {
   connectToServer,
   sendDataToServer,
@@ -19,31 +20,18 @@ import {
   getProjected,
   updateValue,
 } from "../actions/LocalDBActions";
+import { Button } from "react-bootstrap";
 import SlidingPane from "react-sliding-pane";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "react-sliding-pane/dist/react-sliding-pane.css";
+import logo from "../images/logoLoader.png";
 
-import ChatRepresenter from './ChatRepresenter';
+import ChatRepresenter from "./ChatRepresenter";
 
 const HomeScreen = (props) => {
   const [allChats, setAllChats] = useState([]);
-  const [isPaneOpen, setPane] = useState(true);
-  //after leaving chat screen clear new messages counter
-  // useEffect(() => {
-  //   if(props.route.params?.backFromChat){
-  //     let backFromChatIndex = allChats.findIndex(x => x.chatId == props.route.params.backFromChat)
-  //     console.log(backFromChatIndex)
-  //     let updated = allChats
-  //     updated[backFromChatIndex].newMessagesNum = 0
-  //     setAllChats(updated)
-
-  //     props.updateValue(
-  //       props.route.params.backFromChat,
-  //       {NewMessagesNum: 0},
-  //     );
-
-  //     props.navigation.setParams({backFromChat: null})
-  //   }
-  // }, [props.route.params?.backFromChat])
+  const [isPaneOpen, setPane] = useState(false);
+  const [currentOpendChat, setCurrentChat] = useState("");
 
   const addNewChatToDB = (chat) => {
     let newMessages = chat.NewMessages;
@@ -54,6 +42,7 @@ const HomeScreen = (props) => {
         Members: chat.Members,
         Messages: chat.NewMessages,
         NewMessagesNum: newMessages.length,
+        IsGroup: chat.IsGroup,
         LastMessageId: newMessages[newMessages.length - 1]._id,
       },
       (err, newDoc) => {}
@@ -76,16 +65,32 @@ const HomeScreen = (props) => {
     let newMessages = chat.NewMessages;
     //adding all new messages to messages array
     console.log("adding all new messages to messages array");
-    props.addManyToArray(chat.ChatId, "Messages", newMessages);
 
-    let newElement;
-    props.getProjected(chat.ChatId, ["NewMessagesNum"], (el) => {
-      newElement = el;
+    let addMessagesPromise = new Promise((resolve, reject) => {
+      props.addManyToArray(chat.ChatId, "Messages", newMessages, () => {
+        resolve();
+      });
     });
-    //updating "LastMessageId" field
-    props.updateValue(chat.ChatId, {
-      NewMessagesNum: newElement[0].NewMessagesNum + newMessages.length,
-      LastMessageId: newMessages[newMessages.length - 1]._id,
+    addMessagesPromise.then(() => {
+      let getCurrentMessagesNumPromise = new Promise((resolve, reject) => {
+        props.getProjected(chat.ChatId, ["NewMessagesNum"], (el) => {
+          resolve(el);
+        });
+      });
+
+      getCurrentMessagesNumPromise.then((newElement) => {
+        //updating "LastMessageId" field
+        props.updateValue(
+          chat.ChatId,
+          {
+            NewMessagesNum: newElement[0].NewMessagesNum + newMessages.length,
+            LastMessageId: newMessages[newMessages.length - 1]._id,
+          },
+          () => {
+            console.log("New messages counter updated");
+          }
+        );
+      });
     });
   };
 
@@ -127,6 +132,7 @@ const HomeScreen = (props) => {
         chatName: data.ChatName,
         chatMembers: data.Members,
         isNew: data.IsNew,
+        isGroup: data.IsGroup,
         newMessagesNum: data.NewMessages.length,
       });
       updateAllChatsToDisplay(allChats, ChatRepresentorsUpdatedData);
@@ -165,6 +171,7 @@ const HomeScreen = (props) => {
             chatName: element.ChatName,
             chatMembers: element.Members,
             isNew: element.IsNew,
+            isGroup: element.IsGroup,
             newMessagesNum: element.NewMessages.length,
           });
           // -----------------------
@@ -181,51 +188,19 @@ const HomeScreen = (props) => {
   useEffect(() => {
     props.loadDB("localDB");
 
-    //show all
-    // props.loadDocFromDB({}, (err, docs) => {
-    //   console.log('');
-    //   console.log('All docs:');
-    //   console.log(docs);
-    //   console.log('');
-    // });
-
-    //remove all
-    // props.removeDocFromDB({}, true, (err, numberOfRemoved) =>{
-    //    console.log(numberOfRemoved)
-    // })
-
-    // props.saveDocToDB({Type: 'localChatsIds', ChatIds: ["6052553af34ec222c2c36a57"]}, (err, newDoc) =>{
-    //   console.log(newDoc)
-    // })
-
-    // props.saveDocToDB({_id: '6052553af34ec222c2c36a57', ChatName: "some_name", Members: ["604e35066b4e72e77404925b", "6052036cb9277234a5b10187"], Messages:
-    // [{_id: '60526d82fd5b47331d0f0401', Sender: '604e35066b4e72e77404925b', Body: "Second message add to db"}], LastMessageId: "60526d82fd5b47331d0f0401"}, (err, newDoc) =>{
-    //   console.log(newDoc)
-    // })
-
-    // props.removeDocFromDB({_id: '6052553af34ec222c2c36a57'}, true, (err, numberOfRemoved) =>{
-    //   console.log(numberOfRemoved)
-    // })
-
-    //   props.addToArray({Type: 'localChatsIds'}, {ChatIds: "605210b6ca1a7d4c922dd7c5"}, (err, docs) =>{
-    //     console.log(docs)
-    // })
-
-    // props.removeFromArray({type: 'localChatsIds'}, {chatIds: "605210b6ca1a7d4c922dd7c5"}, (err, docs) =>{
-    //       console.log(docs)
-    //   })
-
-    // props.loadDocFromDB({_id: '6052553af34ec222c2c36a57'}, (err, docs) =>{
-    //   console.log(docs[0])
-    // })
     let localChatsRes;
     props.loadDocFromDB("localChatsIds", (docs) => {
       localChatsRes = docs;
     });
     console.log(localChatsRes);
     if (localChatsRes.length == 0) {
-      props.saveDocToDB({ _id: "localChatsIds", ChatIds: [] }, () => {
-        console.log("Local chats initialized");
+      let initChats = new Promise((resolve, reject) => {
+        props.saveDocToDB({ _id: "localChatsIds", ChatIds: [] }, () => {
+          console.log("Local chats initialized");
+          resolve();
+        });
+      });
+      initChats.then(() => {
         zeroPacketRequest([], []);
       });
     } else {
@@ -241,13 +216,20 @@ const HomeScreen = (props) => {
           //we need only projections (Only "LastMessageId" field, "ChatName" field and "Members" field )
           props.getProjected(
             chatId,
-            ["LastMessageId", "ChatName", "Members", "NewMessagesNum"],
+            [
+              "LastMessageId",
+              "ChatName",
+              "Members",
+              "NewMessagesNum",
+              "IsGroup",
+            ],
             (lastMessageId) => {
               //pushing data from db to array
               ChatRepresentorsLocalData.push({
                 chatId: chatId,
                 chatName: lastMessageId[0].ChatName,
                 chatMembers: lastMessageId[0].Members,
+                isGroup: lastMessageId[0].IsGroup,
                 newMessagesNum: lastMessageId[0].NewMessagesNum, //TO DO: create a field of number of new messages in db
               });
               //pushing "ChatId" and "LastMessageId" to array which will be send to server
@@ -268,51 +250,81 @@ const HomeScreen = (props) => {
 
   // in case of chat is pressed (navigating to "ChatScreen" and passing chatId )
   const chatPressed = (chatId, chatName) => {
-    props.navigation.navigate("ChatScreen", {
-      chatId: chatId,
-      chatName: chatName,
-    });
+    setCurrentChat(chatId)
+    // props.navigation.navigate("ChatScreen", {
+    //   chatId: chatId,
+    //   chatName: chatName,
+    // });
   };
 
   return (
-    <div>
+    <div className="homeScreenContainer">
       <SlidingPane
         className="some-custom-class"
         overlayClassName="some-custom-overlay-class"
         isOpen={isPaneOpen}
         from="left"
         width="300px"
-        title="Hey, it is optional pane title.  I can be React component too."
-        subtitle="Optional subtitle."
         onRequestClose={() => {
           // triggered on "<" on left top click or on outside click
           setPane(false);
         }}
       >
-        <div>And I am pane content. BTW, what rocks?</div>
+        <Button
+          onClick={() => {
+            localStorage.clear();
+          }}
+        >
+          Log out
+        </Button>
       </SlidingPane>
-    <div className="chatsPanel">
-       {allChats.map((x) => (
-      <ChatRepresenter
+      <div className="chatsPanel">
+        <div className="topPanel">
+          <Button
+            className="slidePaneButton"
+            variant="primary"
+            style={{
+              borderRadius: "20px",
+              height: "40px",
+              width: "40px",
+              marginLeft: "10px",
+              marginTop: "5px",
+            }}
+            onClick={() => {
+              setPane(true);
+            }}
+          >
+            <FontAwesomeIcon
+              icon="bars"
+              size="lg"
+              className="fontAwesomeIcon"
+              style={{ marginLeft: "-2px" }}
+            />
+          </Button>
+          <div className="appName">
+            <p>My Messenger</p>
+          </div>
+          <div className="appLogo">
+            <img src={logo} className="homeScreenLogo"></img>
+          </div>
+        </div>
+        {allChats.map((x) => (
+          <ChatRepresenter
             key={x.chatId}
             chatId={x.chatId}
             chatName={x.chatName}
             newMessagesNum={x.newMessagesNum}
-            onPress={chatPressed}></ChatRepresenter>))}
+            isGroup={x.isGroup}
+            isSelected={x.chatId === currentOpendChat}
+            onPress={chatPressed}
+          ></ChatRepresenter>
+        ))}
+      </div>
+
+      <div className="chatScreen">
+          {currentOpendChat === "" ? null : <ChatScreen chatId={currentOpendChat}></ChatScreen>}
+      </div>
     </div>
-    </div>
-    // <View>
-    //   <ScrollView>
-    //     {allChats.map((x) => (
-    //       <ChatRepresenter
-    //         key={x.chatId}
-    //         chatId={x.chatId}
-    //         chatName={x.chatName}
-    //         newMessagesNum={x.newMessagesNum}
-    //         onPress={chatPressed}></ChatRepresenter>
-    //     ))}
-    //   </ScrollView>
-    // </View>
   );
 };
 

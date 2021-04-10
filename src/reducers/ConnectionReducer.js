@@ -9,7 +9,7 @@ var onReceiveCallbacks = [];
 
 const formPacket = (packetType, payload) => {
   let base64Payload =
-    String.fromCharCode(packetType + 48) + btoa(payload) + "~";
+    String.fromCharCode(packetType + 48) + btoa(unescape(encodeURIComponent(payload))) + "~";
   console.log(base64Payload);
   return base64Payload;
 };
