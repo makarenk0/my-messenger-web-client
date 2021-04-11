@@ -113,7 +113,7 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
       let alreadyPresent = onReceiveCallbacks.findIndex(
         (x) => x.id == action.payload.id
       );
-      if (alreadyPresent != -1) {
+      if (alreadyPresent !== -1) {
         //checking if there are no callbacks with such id already
         onReceiveCallbacks[alreadyPresent].callback = action.payload.callback;
       } else {

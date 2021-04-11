@@ -157,11 +157,13 @@
 }
 .homeScreenContainer{
   display: table;
+  width: 100%;
   
   .chatsPanel {
     display: table-cell;
     width: 400px;
-    height: 100vh;
+    vertical-align: top;
+    //height: 100vh;
     border-right: 1px solid #dedede;
     .topPanel{
       height: 50px;
@@ -196,7 +198,39 @@
 
   .chatScreen{
     display: table-cell;
+    vertical-align: top;
+    height: 100vh;
+    .chatHeader{
+     background-color: #67daf9;
+      height: 63px;
+    }
+    .messageThread{
+      padding-top: 20px;
+      height: 80vh;
+      overflow-y: scroll;
+    }
   }
+}
+
+
+/* width */
+*::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+*::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+*::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+*::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }
 
 
