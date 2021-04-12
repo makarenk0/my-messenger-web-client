@@ -127,62 +127,6 @@ const SignUpScreen = (props) => {
         </Button>
       </Form>
     </div>
-    //value={this.state.value} onChange={this.handleChange}
-    // <View style={styles.mainContainer}>
-    //   <ScrollView style={styles.scrollView}>
-    //     <View style={styles.elementContainer}>
-    //       <TextInput
-    //         style={styles.inputStyle}
-    //         value={loginValue}
-    //         onChangeText={(text) => {
-    //           setLoginValue(text);
-    //           setErrorText('');
-    //         }}
-    //         placeholder="Login"></TextInput>
-    //       <TextInput
-    //         style={styles.inputStyle}
-    //         value={passwordValue}
-    //         onChangeText={(text) => {
-    //           setPasswordValue(text);
-    //           setErrorText('');
-    //         }}
-    //         placeholder="Password"></TextInput>
-    //       <TextInput
-    //         style={styles.inputStyle}
-    //         value={firstNameValue}
-    //         onChangeText={(text) => {
-    //           setfirstNameValue(text);
-    //         }}
-    //         placeholder="First name"></TextInput>
-    //       <TextInput
-    //         style={styles.inputStyle}
-    //         value={lastNameValue}
-    //         onChangeText={(text) => {
-    //           setlastNameValue(text);
-    //         }}
-    //         placeholder="Last name"></TextInput>
-    //       <Text style={styles.birthDateText}>Birth date</Text>
-    //       <DatePicker
-    //         style={styles.birthDatePicker}
-    //         date={date}
-    //         mode="date"
-    //         locale="en-GB"
-    //         androidVariant="nativeAndroid"
-    //         onDateChange={setDate}
-    //       />
-
-    //       <Text style={styles.inputErrorText}>{errorText}</Text>
-    //       <Text style={styles.inputSuccessText}>{successText}</Text>
-
-    //       <ActivityIndicator animating={loading} size="large" color="#67daf9"/>
-    //       <TouchableOpacity
-    //         style={styles.signUpButton}
-    //         onPress={signUpButtonPressed}>
-    //         <Text style={{fontSize: 20}}>Sign up</Text>
-    //       </TouchableOpacity>
-    //     </View>
-    //   </ScrollView>
-    // </View>
   );
 };
 

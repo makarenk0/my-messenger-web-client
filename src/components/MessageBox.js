@@ -29,7 +29,7 @@ const MessageBox = (props) => {
         }
       >
         {!props.isMine && !props.isSystem && props.isGroup ? (
-          <p
+          <p key={"Username"}
             style={{
               fontWeight: "bold",
               marginBottom: 5,
@@ -38,14 +38,14 @@ const MessageBox = (props) => {
             {props.memberName}
           </p>
         ) : null}
-        <p
+        <p key={"MessageBody"}
           style={{
             marginBottom: 5,
           }}
         >
           {props.body}
         </p>
-        <p style={props.isSystem ? { fontSize: 15, textAlign: "center", paddingBottom: 4 }:{ fontSize: 12, paddingBottom: 4 }}>
+        <p key={"Timestamp"} style={props.isSystem ? { fontSize: 15, textAlign: "center", paddingBottom: 4 }:{ fontSize: 12, paddingBottom: 4 }}>
           {props.isSystem ? "at " : null}
           {props.timestamp}
         </p>

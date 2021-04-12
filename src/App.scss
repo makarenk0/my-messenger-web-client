@@ -145,6 +145,7 @@
 
   .chatNameBlock {
     display: table-cell;
+    vertical-align: middle;
     .chatNameBox {
       margin-left: 15px;
       p {
@@ -201,13 +202,72 @@
     vertical-align: top;
     height: 100vh;
     .chatHeader{
-     background-color: #67daf9;
-      height: 63px;
+      background-color: #100C08;
+      height: 6.6vh;
+      display: table;
+      width: 100%;
+      .iconContainer{
+        width: 50px;
+        display: table-cell;
+        .fontAwesomeIcon {
+          margin-left: 50%;
+          margin-top: 8px;
+          transform: translate(-50%);
+        }
+      }
+      .chatName{
+        display: table-cell;
+        p{
+          margin-left: 30px;
+          font-size: 30px;
+          text-align: start;
+          margin-bottom: 0px;
+          color: #fff;
+          font-weight: bold;
+        }
+      }
+      
     }
     .messageThread{
       padding-top: 20px;
-      height: 80vh;
+      height: 87.3vh;
       overflow-y: scroll;
+      //overflow-anchor: none;
+      *{
+        overflow-anchor: none;
+      }
+
+      #anchor {
+        overflow-anchor: auto;
+        height: 1px;
+      }
+    }
+    .sendMessageBox{
+      display: table;
+      background-color: #1f2833;
+      height: 5vh;
+      width: 100%;
+      padding-top: 10px;
+      padding-left: 10px;
+      input{
+        display: table-cell;
+        vertical-align: top;
+        width: 100%;
+        height: 40px;
+        border-radius: 5px;
+        border: 1px solid #67daf9;
+        &:focus{
+          outline: none;
+        }
+      }
+      div{
+        display: table-cell;
+        vertical-align: top;
+        .sendButton{
+          position: relative;
+          top: -6px;
+        }
+      }
     }
   }
 }

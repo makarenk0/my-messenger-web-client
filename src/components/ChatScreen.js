@@ -10,6 +10,9 @@ import {
   unsubscribeFromUpdate,
 } from "../actions/ConnectionActions";
 
+import { Button } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   saveDocToDB,
   loadDocFromDB,
@@ -26,35 +29,35 @@ const ChatScreen = (props) => {
   const chatId = props.chatId;
   const [toSend, setSendMessage] = useState("");
   const [allMessages, setAllMessages] = useState([]);
+  const [chatName, setChatName] = useState("");
   const [reRenderFlag, setRerenderFlag] = useState(true);
   const [isGroup, setGroupFlag] = useState(false);
   const [membersInfo, setMembersInfo] = useState([]);
 
-
-   //load members list
-   const getAllMembers = (members) => {
-    console.log('members');
+  //load members list
+  const getAllMembers = (members) => {
+    console.log("members");
     console.log(members);
     var membersAbsentLocally = [];
     var membersPresentLocally = [];
 
     let promises = [];
     members.forEach((x) => {
-      console.log('member iterate');
+      console.log("member iterate");
       promises.push(
         new Promise((resolve, reject) => {
           props.loadDocFromDB(x, (doc) => {
             console.log(doc.length);
             if (doc.length > 0) {
-              console.log('User info loaded locally');
+              console.log("User info loaded locally");
               membersPresentLocally.push(doc[0]);
             } else {
               console.log(x);
               membersAbsentLocally.push(x);
             }
-            resolve('done');
+            resolve("done");
           });
-        }),
+        })
       );
     });
     Promise.all(promises).then((res) => {
@@ -65,25 +68,26 @@ const ChatScreen = (props) => {
         };
         console.log(finUsersObj);
         props.sendDataToServer(3, true, finUsersObj, (response) => {
-          if (response.Status == 'success') {
-            setMembersInfo([...membersInfo, ...response.Users, ...membersPresentLocally]);
+          if (response.Status == "success") {
+            setMembersInfo([
+              ...membersInfo,
+              ...response.Users,
+              ...membersPresentLocally,
+            ]);
 
             response.Users.forEach((x) => {
-              x['Type'] = 'localUser'
-              x['_id'] = x.UserID
-              props.saveDocToDB(
-               x, () => {});
+              x["Type"] = "localUser";
+              x["_id"] = x.UserID;
+              props.saveDocToDB(x, () => {});
             });
           } else {
             console.log(response.Status);
             console.log(response.Details);
           }
         });
-      }
-      else{
+      } else {
         setMembersInfo([...membersInfo, ...membersPresentLocally]);
       }
-      
     });
   };
 
@@ -91,10 +95,6 @@ const ChatScreen = (props) => {
   //   console.log(membersInfo);
   //   setRerenderFlag(!reRenderFlag);
   // }, [membersInfo]);
-
-
-
-
 
   const sendMessage = () => {
     if (!isEmptyOrSpaces(toSend)) {
@@ -111,28 +111,6 @@ const ChatScreen = (props) => {
       });
     }
   };
-
-  // useEffect(() => {
-  //   setRerenderFlag(!reRenderFlag);
-  // }, [allMessages]);
-
-  // const handleBackPress = () =>{
-  //   BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-
-  //   props.unsubscribeFromUpdate('chatscreen', (removed) => {
-  //     console.log('Subscription removed:');
-  //     console.log(removed);
-  //   });
-
-  //   props.navigation.navigate('Chats', {
-  //     backFromChat: chatId,
-  //   });
-  //   return true
-  // }
-
-  // useEffect(() =>{
-  //   BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-  // }, [])
 
   const isEmptyOrSpaces = (str) => {
     return str === null || str.match(/^ *$/) !== null;
@@ -151,6 +129,7 @@ const ChatScreen = (props) => {
       setAllMessages(chat.Messages);
       setGroupFlag(chat.IsGroup);
       getAllMembers(chat.Members);
+      setChatName(chat.ChatName);
     });
   }, [props.chatId]);
 
@@ -158,7 +137,7 @@ const ChatScreen = (props) => {
     props.subscribeToUpdate(5, "chatscreen", (data) => {
       if (data.ChatId == chatId) {
         let newMessages = data.NewMessages;
-        setAllMessages([...newMessages, ...allMessages]);
+        setAllMessages([...allMessages, ...newMessages]);
         setRerenderFlag(!reRenderFlag);
       }
     });
@@ -181,7 +160,7 @@ const ChatScreen = (props) => {
   const decapsulateDateFromId = (id) => {
     let decapsulatedDate = parseInt(id.substring(0, 8), 16) * 1000;
     let date = new Date(decapsulatedDate);
-    return date.toTimeString().split(' ')[0].substr(0, 5);
+    return date.toTimeString().split(" ")[0].substr(0, 5);
   };
 
   const renderItem = (x) => {
@@ -190,20 +169,21 @@ const ChatScreen = (props) => {
     if (memberInfoIndex != -1) {
       memberInfo = membersInfo[memberInfoIndex];
     }
-    return(<MessageBox
-              body={x.Body}
-              isMine={
-                props.connectionReducer.connection.current.myId == x.Sender
-              }
-              isSystem={x.Sender == 'System'}
-              isGroup={isGroup}
-              memberName={
-                memberInfo == null
-                  ? ''
-                  : memberInfo.FirstName + ' ' + memberInfo.LastName
-              }
-              timestamp={decapsulateDateFromId(x._id)}
-            ></MessageBox>)
+    return (
+      <MessageBox
+        key={x._id}
+        body={x.Body}
+        isMine={props.connectionReducer.connection.current.myId == x.Sender}
+        isSystem={x.Sender == "System"}
+        isGroup={isGroup}
+        memberName={
+          memberInfo == null
+            ? ""
+            : memberInfo.FirstName + " " + memberInfo.LastName
+        }
+        timestamp={decapsulateDateFromId(x._id)}
+      ></MessageBox>
+    );
   };
 
   // const ChatThreadSeparator = (item) =>{
@@ -241,14 +221,59 @@ const ChatScreen = (props) => {
   return (
     <div>
       <div className="chatHeader">
-        <div className="chatBar"></div>
+        <div className="iconContainer">
+          <div
+            style={{
+              marginTop: "5px",
+              marginLeft: "15px",
+              borderRadius: "25px",
+              backgroundColor: "#CCCCCC",
+              width: "50px",
+              height: "50px",
+            }}
+          >
+            <FontAwesomeIcon
+              icon={isGroup ? "users" : "user"}
+              size="2x"
+              className="fontAwesomeIcon"
+            />
+          </div>
+        </div>
+        <div className="chatName">
+          <p>{chatName}</p>
+        </div>
       </div>
       <div className="messageThread">
         {allMessages.map((x) => {
-          return (
-            renderItem(x)
-          );
+          return renderItem(x);
         })}
+        <div id="anchor"></div>
+      </div>
+      <div className="sendMessageBox">
+        <input placeholder="Enter your message" value={toSend} onChange={(e) => {setSendMessage(e.target.value)}}></input>
+        <div>
+          <Button
+            className="sendButton"
+            variant="primary"
+            style={{
+              borderRadius: "22px",
+              height: "45px",
+              width: "45px",
+              marginLeft: "10px",
+              marginTop: "5px",
+            }}
+            onClick={() => {
+              sendMessage()
+            }}
+          >
+            <FontAwesomeIcon
+              icon="paper-plane"
+              size="lg"
+              className="fontAwesomeIconSend"
+              style={{ marginLeft: "-3px" }}
+            />
+          </Button>
+        </div>
       </div>
     </div>
     // <View style={styles.mainContainer}>

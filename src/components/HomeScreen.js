@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useHistory } from "react-router-dom";
 
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { showModal, hideModal } from "../actions/ModalActions";
-import ChatScreen from './ChatScreen';
+import ChatScreen from "./ChatScreen";
 import {
   connectToServer,
   sendDataToServer,
   subscribeToUpdate,
+  unsubscribeFromUpdate,
 } from "../actions/ConnectionActions";
 import {
   loadDB,
@@ -32,6 +34,8 @@ const HomeScreen = (props) => {
   const [allChats, setAllChats] = useState([]);
   const [isPaneOpen, setPane] = useState(false);
   const [currentOpendChat, setCurrentChat] = useState("");
+
+  let history = useHistory();
 
   const addNewChatToDB = (chat) => {
     let newMessages = chat.NewMessages;
@@ -80,10 +84,17 @@ const HomeScreen = (props) => {
 
       getCurrentMessagesNumPromise.then((newElement) => {
         //updating "LastMessageId" field
+        console.log("Current chat:")
+        console.log(currentOpendChat)
+        console.log("Chat update on:")
+        console.log(chat.ChatId)
         props.updateValue(
           chat.ChatId,
           {
-            NewMessagesNum: newElement[0].NewMessagesNum + newMessages.length,
+            NewMessagesNum:
+              currentOpendChat !== chat.ChatId
+                ? newElement[0].NewMessagesNum + newMessages.length
+                : 0,
             LastMessageId: newMessages[newMessages.length - 1]._id,
           },
           () => {
@@ -101,7 +112,8 @@ const HomeScreen = (props) => {
       let update = updated.find((y) => y.chatId == x.chatId);
       if (typeof update !== "undefined") {
         //update counter only in case there is an update
-        x.newMessagesNum += update.newMessagesNum;
+        x.newMessagesNum +=
+          currentOpendChat !== x.chatId ? update.newMessagesNum : 0;
       }
       return x;
     });
@@ -116,7 +128,12 @@ const HomeScreen = (props) => {
   };
 
   useEffect(() => {
-    props.subscribeToUpdate(5, "homescreen", (data) => {
+    let subscribeUpdate = new Promise((resolve, reject) => {
+      props.subscribeToUpdate(5, "homescreen", (data) => {
+        resolve(data)
+      });
+    })
+    subscribeUpdate.then((data) => {
       console.log(data);
       console.log(data.IsNew);
       if (data.IsNew) {
@@ -136,8 +153,8 @@ const HomeScreen = (props) => {
         newMessagesNum: data.NewMessages.length,
       });
       updateAllChatsToDisplay(allChats, ChatRepresentorsUpdatedData);
-    });
-  }, [allChats]);
+    })
+  }, [allChats, currentOpendChat]);
 
   const zeroPacketRequest = (LastChatsMessages, ChatRepresentorsLocalData) => {
     let ChatRepresentorsUpdatedData = []; // this array will be a response data for "LastChatsMessages" array
@@ -192,6 +209,7 @@ const HomeScreen = (props) => {
     props.loadDocFromDB("localChatsIds", (docs) => {
       localChatsRes = docs;
     });
+
     console.log(localChatsRes);
     if (localChatsRes.length == 0) {
       let initChats = new Promise((resolve, reject) => {
@@ -203,58 +221,53 @@ const HomeScreen = (props) => {
       initChats.then(() => {
         zeroPacketRequest([], []);
       });
+    } else if (localChatsRes[0].ChatIds.length == 0) {
+      zeroPacketRequest([], []);
     } else {
-      if (localChatsRes[0].ChatIds.length == 0) {
-        zeroPacketRequest([], []);
-      } else {
-        let LastChatsMessages = []; //this array will be send to server and server will determine which new messages do you need (or new chats)
-        var ChatRepresentorsLocalData = []; // this array is formed with data of chats which are stored locally
+      let LastChatsMessages = []; //this array will be send to server and server will determine which new messages do you need (or new chats)
+      var ChatRepresentorsLocalData = []; // this array is formed with data of chats which are stored locally
 
-        localChatsRes[0].ChatIds.forEach((chatId) => {
-          console.log(chatId);
+      localChatsRes[0].ChatIds.forEach((chatId) => {
+        //we need only projections (Only "LastMessageId" field, "ChatName" field and "Members" field )
+        props.getProjected(
+          chatId,
+          ["LastMessageId", "ChatName", "Members", "NewMessagesNum", "IsGroup"],
+          (lastMessageId) => {
+            //pushing data from db to array
+            ChatRepresentorsLocalData.push({
+              chatId: chatId,
+              chatName: lastMessageId[0].ChatName,
+              chatMembers: lastMessageId[0].Members,
+              isGroup: lastMessageId[0].IsGroup,
+              newMessagesNum: lastMessageId[0].NewMessagesNum, //TO DO: create a field of number of new messages in db
+            });
+            //pushing "ChatId" and "LastMessageId" to array which will be send to server
+            LastChatsMessages.push({
+              ChatId: chatId,
+              LastMessageId: lastMessageId[0].LastMessageId,
+            });
+          }
+        );
+        //--------------------------------------------------------------------------------------------
+      });
+      // waiting for all requests are completed on database
 
-          //we need only projections (Only "LastMessageId" field, "ChatName" field and "Members" field )
-          props.getProjected(
-            chatId,
-            [
-              "LastMessageId",
-              "ChatName",
-              "Members",
-              "NewMessagesNum",
-              "IsGroup",
-            ],
-            (lastMessageId) => {
-              //pushing data from db to array
-              ChatRepresentorsLocalData.push({
-                chatId: chatId,
-                chatName: lastMessageId[0].ChatName,
-                chatMembers: lastMessageId[0].Members,
-                isGroup: lastMessageId[0].IsGroup,
-                newMessagesNum: lastMessageId[0].NewMessagesNum, //TO DO: create a field of number of new messages in db
-              });
-              //pushing "ChatId" and "LastMessageId" to array which will be send to server
-              LastChatsMessages.push({
-                ChatId: chatId,
-                LastMessageId: lastMessageId[0].LastMessageId,
-              });
-            }
-          );
-          //--------------------------------------------------------------------------------------------
-        });
-        // waiting for all requests are completed on database
-
-        zeroPacketRequest(LastChatsMessages, ChatRepresentorsLocalData);
-      }
+      zeroPacketRequest(LastChatsMessages, ChatRepresentorsLocalData);
     }
   }, []);
 
   // in case of chat is pressed (navigating to "ChatScreen" and passing chatId )
   const chatPressed = (chatId, chatName) => {
-    setCurrentChat(chatId)
-    // props.navigation.navigate("ChatScreen", {
-    //   chatId: chatId,
-    //   chatName: chatName,
-    // });
+    let backFromChatIndex = allChats.findIndex((x) => x.chatId == chatId);
+    let updated = allChats;
+    if (updated[backFromChatIndex] != null) {
+      updated[backFromChatIndex].newMessagesNum = 0;
+      setAllChats(updated);
+
+      props.updateValue(chatId, { NewMessagesNum: 0 }, () => {});
+    }
+    console.log(chatId)
+    setCurrentChat(chatId);
   };
 
   return (
@@ -273,6 +286,10 @@ const HomeScreen = (props) => {
         <Button
           onClick={() => {
             localStorage.clear();
+            props.unsubscribeFromUpdate("homescreen", (removed) => {
+              console.log(removed);
+            });
+            history.goBack();
           }}
         >
           Log out
@@ -322,7 +339,9 @@ const HomeScreen = (props) => {
       </div>
 
       <div className="chatScreen">
-          {currentOpendChat === "" ? null : <ChatScreen chatId={currentOpendChat}></ChatScreen>}
+        {currentOpendChat === "" ? null : (
+          <ChatScreen chatId={currentOpendChat}></ChatScreen>
+        )}
       </div>
     </div>
   );
@@ -345,6 +364,7 @@ const mapDispatchToProps = (dispatch) =>
       connectToServer,
       sendDataToServer,
       subscribeToUpdate,
+      unsubscribeFromUpdate,
       loadDB,
       saveDocToDB,
       loadDocFromDB,

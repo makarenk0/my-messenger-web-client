@@ -62,6 +62,7 @@ const localDBReducer = (state = INITIAL_STATE, action) => {
         projectionProm[element] = wholeObj[element]
       });
       action.payload.callback([projectionProm]);
+      return state;
     default:
       return state;
   }
