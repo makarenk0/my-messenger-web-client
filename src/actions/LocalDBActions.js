@@ -47,6 +47,13 @@ export const saveDocToDB = (docToSave, callback) => (
     }
   );
 
+  export const removeManyFromArray = (_id, fieldName, removeParameterField, toRemove, callback) => (
+    {
+      type: 'REMOVE_MANY_FROM_ARRAY',
+      payload: {'_id': _id, 'fieldName': fieldName, 'removeParameterField': removeParameterField, 'toRemove': toRemove, 'callback': callback}
+    }
+  );
+
   export const updateValue = (_id, toUpdate, callback) => (
     {
       type: 'UPDATE_VALUE',

@@ -133,9 +133,9 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
       action.payload.callback(removed);
       return state;
 
-    case "SET_SESSION_TOKEN_AND_ID":
+    case "SET_SESSION_TOKEN_AND_USER_INFO":
       current["sessionToken"] = action.payload.sessionToken;
-      current["myId"] = action.payload.userId;
+      current["currentUser"] = action.payload.userInfo
       return { current };
     default:
       return state;

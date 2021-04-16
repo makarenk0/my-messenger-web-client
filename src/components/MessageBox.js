@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from "react";
 
 const MessageBox = (props) => {
+  const [isSelected, setSelected] = useState(false);
+
   return (
-    <div>
+    <div
+      onClick={() => {
+        if (!props.isSystem) {
+          props.messageOnClick(props._id);
+          setSelected(!isSelected);
+        }
+      }}
+    >
       <div
         style={
           props.isSystem
@@ -17,7 +26,11 @@ const MessageBox = (props) => {
                 alignSelf: "center",
               }
             : {
-                backgroundColor: props.isMine ? "#00BCD4" : "#03a9f4",
+                backgroundColor: isSelected
+                  ? "#29bb89"
+                  : props.isMine
+                  ? "#00BCD4"
+                  : "#03a9f4",
                 paddingTop: 5,
                 paddingLeft: 10,
                 paddingRight: 10,
@@ -29,7 +42,8 @@ const MessageBox = (props) => {
         }
       >
         {!props.isMine && !props.isSystem && props.isGroup ? (
-          <p key={"Username"}
+          <p
+            key={"Username"}
             style={{
               fontWeight: "bold",
               marginBottom: 5,
@@ -38,14 +52,22 @@ const MessageBox = (props) => {
             {props.memberName}
           </p>
         ) : null}
-        <p key={"MessageBody"}
+        <p
+          key={"MessageBody"}
           style={{
             marginBottom: 5,
           }}
         >
           {props.body}
         </p>
-        <p key={"Timestamp"} style={props.isSystem ? { fontSize: 15, textAlign: "center", paddingBottom: 4 }:{ fontSize: 12, paddingBottom: 4 }}>
+        <p
+          key={"Timestamp"}
+          style={
+            props.isSystem
+              ? { fontSize: 15, textAlign: "center", paddingBottom: 4 }
+              : { fontSize: 12, paddingBottom: 4 }
+          }
+        >
           {props.isSystem ? "at " : null}
           {props.timestamp}
         </p>

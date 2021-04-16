@@ -9,7 +9,7 @@ import logoCenter from '../images/message64.png'
 import {
   connectToServer,
   sendDataToServer,
-  setSessionTokenAndId,
+  setSessionTokenAndUserInfo,
 } from "../actions/ConnectionActions";
 import { LOCAL_SERVER_IP, CONNECTING_TIMEOUT_MILLIS } from "../configs";
 
@@ -54,7 +54,7 @@ const LogInScreen = (props) => {
         setShow(true)
       } else {
         console.log(response);
-        props.setSessionTokenAndId(response.SessionToken, response.Id);
+        props.setSessionTokenAndUserInfo(response.SessionToken, response.UserInfo);
         let saveLogPassObj;
         if (rememberUser) {
           saveLogPassObj = {
@@ -242,7 +242,7 @@ const mapDispatchToProps = (dispatch) =>
       showModal,
       connectToServer,
       sendDataToServer,
-      setSessionTokenAndId,
+      setSessionTokenAndUserInfo,
     },
     dispatch
   );

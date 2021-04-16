@@ -20,6 +20,7 @@ import {
   addOneToArray,
   addManyToArray,
   removeFromArray,
+  removeManyFromArray,
   getProjected,
   updateValue,
 } from "../actions/LocalDBActions";
@@ -33,6 +34,7 @@ const ChatScreen = (props) => {
   const [reRenderFlag, setRerenderFlag] = useState(true);
   const [isGroup, setGroupFlag] = useState(false);
   const [membersInfo, setMembersInfo] = useState([]);
+  const [selectedMessages, setSelectedMessages] = useState([])
 
   //load members list
   const getAllMembers = (members) => {
@@ -77,7 +79,7 @@ const ChatScreen = (props) => {
 
             response.Users.forEach((x) => {
               x["Type"] = "localUser";
-              x["_id"] = x.UserID;
+              x["_id"] = x.UserId;
               props.saveDocToDB(x, () => {});
             });
           } else {
@@ -163,19 +165,56 @@ const ChatScreen = (props) => {
     return date.toTimeString().split(" ")[0].substr(0, 5);
   };
 
+  const messageOnClick = (messageId) => {
+    if(selectedMessages.findIndex(x => x === messageId) !== -1){
+      setSelectedMessages(selectedMessages.filter(x => x !== messageId))
+    }
+    else{
+      setSelectedMessages([...selectedMessages, messageId])
+    }
+  }
+
+  const deleteMessages = () =>{
+    filterDisplayMessages()
+    deleteMessagesFromStorage()
+  }
+
+
+  const filterDisplayMessages = () => {
+    let filtered = allMessages.filter(x => {
+      return selectedMessages.includes(x._id) ? false : true
+    })
+    setAllMessages(filtered)
+  }
+
+
+  const deleteMessagesFromStorage = () => {
+    props.removeManyFromArray(chatId, "Messages", "_id", selectedMessages, () => {})
+    setSelectedMessages([])
+  }
+
+  // useEffect(() => {
+
+  // }, [selectedMessages])
+
+
   const renderItem = (x) => {
-    let memberInfoIndex = membersInfo.findIndex((y) => y.UserID == x.Sender);
+    let memberInfoIndex = membersInfo.findIndex((y) => y.UserId == x.Sender);
     let memberInfo;
     if (memberInfoIndex != -1) {
       memberInfo = membersInfo[memberInfoIndex];
     }
+
     return (
       <MessageBox
+        _id={x._id}
         key={x._id}
+        messageOnClick={messageOnClick}
         body={x.Body}
-        isMine={props.connectionReducer.connection.current.myId == x.Sender}
+        isMine={props.connectionReducer.connection.current.currentUser.UserId == x.Sender}
         isSystem={x.Sender == "System"}
         isGroup={isGroup}
+        isSelected={selectedMessages.findIndex(y => y._id === x._id) !== -1}
         memberName={
           memberInfo == null
             ? ""
@@ -241,6 +280,9 @@ const ChatScreen = (props) => {
         </div>
         <div className="chatName">
           <p>{chatName}</p>
+        </div>
+        <div className="headerButtons">
+            <Button style={{display: selectedMessages.length > 0 ? "block" : "none"}} onClick={deleteMessages}>Delete</Button>
         </div>
       </div>
       <div className="messageThread">
@@ -330,6 +372,7 @@ const mapDispatchToProps = (dispatch) =>
       loadDocFromDB,
       saveDocToDB,
       removeDocFromDB,
+      removeManyFromArray,
       addOneToArray,
       addManyToArray,
       removeFromArray,

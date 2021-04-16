@@ -26,9 +26,9 @@ export const unsubscribeFromUpdate = (id, callback) => (
   }
 );
 
-export const setSessionTokenAndId = (token, id) => (
+export const setSessionTokenAndUserInfo = (token, userInfo) => (
   {
-    type: 'SET_SESSION_TOKEN_AND_ID',
-    payload: {"sessionToken": token, "userId": id}
+    type: 'SET_SESSION_TOKEN_AND_USER_INFO',
+    payload: {"sessionToken": token, "userInfo": userInfo}
   }
 );

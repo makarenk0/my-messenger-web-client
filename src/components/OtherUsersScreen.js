@@ -83,7 +83,7 @@ const OtherUsersScreen = (props) => {
       <FlatList style={styles.usersThread}
         data={resultUsers}
         renderItem={renderItem}
-        keyExtractor={(item) => item.UserID}>
+        keyExtractor={(item) => item.UserId}>
         </FlatList>
       
     </View>
