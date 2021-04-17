@@ -29,7 +29,7 @@ import {
   removeFromArray,
   getProjected,
   updateValue,
-  loadDocWithParams
+  loadDocWithParams,
 } from "../actions/LocalDBActions";
 import { SEARCH_USERS_WAIT_TIMEOUT } from "../configs";
 //import {isEmptyOrSpaces} from "/Utilities";
@@ -83,9 +83,15 @@ const OtherUsersScreen = (props) => {
   };
 
   const renderItem = (item) => {
-    let fullname = item.FirstName + " " + item.LastName
+    let fullname = item.FirstName + " " + item.LastName;
     return (
-      <ListGroup.Item key={item.UserId} onClick={() => {userPressed(item.UserId, fullname)}}>
+      <ListGroup.Item
+        key={item.UserId}
+        onClick={() => {
+          userPressed(item.UserId, fullname);
+        }}
+        className="listItem"
+      >
         <div style={{ marginLeft: "-15px", marginTop: "-8px" }}>
           <div className="chatIcon">
             <div
@@ -107,39 +113,30 @@ const OtherUsersScreen = (props) => {
         </div>
 
         <div style={{ marginLeft: "60px", marginTop: "4px" }}>
-          <p style={{ marginBottom: 0 }}>
-            {fullname}
-          </p>
-          <p style={{ marginBottom: 0 }}>
+          <p style={{ marginBottom: 0 }}>{fullname}</p>
+          <p style={{ marginBottom: 0, fontWeight: "600" }}>
             {"@"}
             {item.Login}
           </p>
         </div>
       </ListGroup.Item>
-      // <UserRepresenter
-      //   border={true}
-      //   userId={item.UserId}
-      //   userFirstName={item.FirstName}
-      //   userLastName={item.LastName}
-      //   userLogin={item.Login}
-      //   userPressed={userPressed}></UserRepresenter>
     );
   };
 
   const userPressed = (userId, userName) => {
     let checkIfExistPromise = new Promise((resolve, reject) => {
-      props.loadDocWithParams({ChatName: userName}, (docs) => {
-       resolve(docs)
-      })
-    })
+      props.loadDocWithParams({ ChatName: userName }, (docs) => {
+        resolve(docs);
+      });
+    });
     checkIfExistPromise.then((docs) => {
-      let chatId = 'new';
-      if(docs.length > 0){
+      let chatId = "new";
+      if (docs.length > 0) {
         chatId = docs[0]._id;
       }
-      props.onClose(false)
-      props.openChat(chatId, userName, userId)
-    })
+      props.onClose(false);
+      props.openChat(chatId, userName, userId);
+    });
     // props.loadDocFromDB({ChatName: userName}, (err, chat) => {
     //   let chatId = 'new';
     //   console.log(chat)
@@ -156,7 +153,13 @@ const OtherUsersScreen = (props) => {
   };
 
   return (
-    <Modal show={props.showOtherUsers} onHide={() => {props.onClose(false)}} size="lg">
+    <Modal
+      show={props.showOtherUsers}
+      onHide={() => {
+        props.onClose(false);
+      }}
+      size="lg"
+    >
       <Modal.Header closeButton>
         <Modal.Title>Contacts</Modal.Title>
       </Modal.Header>
@@ -199,45 +202,11 @@ const OtherUsersScreen = (props) => {
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={() => {}}>
+        <Button variant="secondary" onClick={() => {props.onClose(false);}}>
           Close
         </Button>
       </Modal.Footer>
     </Modal>
-    // <View>
-    //   <View style={{height: 55, width: "100%", backgroundColor: "#1597bb", flexDirection: "row"}}>
-    //   <Button
-    //     style={{borderRadius: 25}}
-    //     containerStyle={{width: 50, marginTop: 5, marginLeft: 5, height: 45, borderRadius: 25}}
-    //     buttonStyle={{backgroundColor: "#1597bb", borderRadius: 25}}
-    //     icon={
-    //       <FontAwesomeIcon
-    //       icon={faBars}
-    //       size={25}
-    //       style={{marginTop: 2}}
-    //       onPress={() =>{props.navigation.openDrawer()}}
-    //     />
-    //     }
-    //   />
-    //   <Text style={{fontSize: 22, textAlignVertical:"center", paddingLeft: 10}}>Contacts</Text>
-    //   </View>
-    //   <SearchBar
-    //     lightTheme
-    //     style={styles.searchField}
-    //     placeholder="Enter user login or name"
-    //     onChangeText={setSearchField}
-    //     value={searchField}
-    //     showLoading={loading}
-    //     loadingProps={{
-    //       animating: true,
-    //       color: 'black',
-    //     }}></SearchBar>
-    //   <FlatList
-    //     style={styles.usersThread}
-    //     data={resultUsers}
-    //     renderItem={renderItem}
-    //     keyExtractor={(item) => item.UserId}></FlatList>
-    // </View>
   );
 };
 

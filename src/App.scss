@@ -276,6 +276,13 @@
   }
 }
 
+.listItem{
+  &:hover{
+    background-color: #67daf9;
+    transition: background-color 1s ease-in-out;
+  }
+}
+
 
 /* width */
 *::-webkit-scrollbar {

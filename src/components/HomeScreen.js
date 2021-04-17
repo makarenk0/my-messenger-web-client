@@ -42,6 +42,7 @@ const HomeScreen = (props) => {
   const [chatName, setChatName] = useState("")
 
   const [showOtherUsers, setShowOtherUsers] = useState(false)
+  const [showPublicChats, setShowPublicChats] = useState(false)
 
   let history = useHistory();
 
@@ -289,6 +290,7 @@ const HomeScreen = (props) => {
   return (
     <div className="homeScreenContainer">
       <OtherUsersScreen showOtherUsers={showOtherUsers} onClose={(flag) =>{setShowOtherUsers(flag)}} openChat={chatPressed}/>
+      <CreateGroupChatScreen showPublicChats={showPublicChats} onClose={(flag) =>{setShowPublicChats(flag)}}/>
       <SlidingPane
         className="some-custom-class"
         overlayClassName="some-custom-overlay-class"
@@ -317,6 +319,12 @@ const HomeScreen = (props) => {
           setShowOtherUsers(!showOtherUsers)
           }}>
           Contacts
+        </Button>
+        <Button onClick={() => {
+          setPane(false);
+          setShowPublicChats(!showPublicChats)
+          }}>
+          Add public chat
         </Button>
       </SlidingPane>
       <div className="chatsPanel">
