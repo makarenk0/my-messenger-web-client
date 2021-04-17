@@ -21,6 +21,26 @@ const localDBReducer = (state = INITIAL_STATE, action) => {
       let itemFound = localStorage.getItem(action.payload._id);
       action.payload.callback(itemFound == null ? [] : [JSON.parse(itemFound)]);
       return state;
+    case "LOAD_DOC_WITH_PARAMS":
+      let results = []
+      let keys = Object.keys(action.payload.params);
+      for(let i=0; i<localStorage.length; i++) {
+        let key = localStorage.key(i);
+        let obj = JSON.parse(localStorage.getItem(key))
+
+        let fit = true
+        for(let j = 0; j < keys.length; j++){
+          if(obj[keys[j]] !== action.payload.params[keys[j]]){
+            fit = false;
+            break;
+          }
+        }
+        if(fit){
+          results.push(obj)
+        }
+      }
+      action.payload.callback(results)
+      return state;
     case "REMOVE_DOC":
       //TO DO: implement
       // current.DB.remove(

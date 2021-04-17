@@ -107,21 +107,38 @@ const ChatScreen = (props) => {
   const sendMessage = () => {
     if (!isEmptyOrSpaces(toSend)) {
       setSendMessage("");
-      let sendObj = {
-        SessionToken: props.connectionReducer.connection.current.sessionToken,
-        ChatId: chatId,
-        Body: toSend,
-      };
-      props.sendDataToServer(
-        isAssistant ? "a" : "4",
-        true,
-        sendObj,
-        (response) => {
+      if (chatId != "new") {
+        let sendObj = {
+          SessionToken: props.connectionReducer.connection.current.sessionToken,
+          ChatId: chatId,
+          Body: toSend,
+        };
+        props.sendDataToServer(
+          isAssistant ? "a" : "4",
+          true,
+          sendObj,
+          (response) => {
+            console.log(response);
+            // setAllMessages([response, ...allMessages])
+            // setRerenderFlag(!reRenderFlag)
+          }
+        );
+      } else {
+        let sendObj = {
+          SessionToken: props.connectionReducer.connection.current.sessionToken,
+          UserIds: [
+            props.newUserId,
+            props.connectionReducer.connection.current.currentUser.UserId,
+          ],
+          Body: toSend,
+        };
+        props.sendDataToServer("6", true, sendObj, (response) => {
+          //only for private chats
           console.log(response);
-          // setAllMessages([response, ...allMessages])
-          // setRerenderFlag(!reRenderFlag)
-        }
-      );
+          props.setChatId(response.ChatId)
+          setAllMessages([...response.NewMessages, ...allMessages]);
+        });
+      }
     }
   };
 
@@ -133,26 +150,34 @@ const ChatScreen = (props) => {
   useEffect(() => {
     let getChatPromise = new Promise((resolve, reject) => {
       props.loadDocFromDB(chatId, (docs) => {
-        console.log(docs);
-        let chat = docs[0];
-        resolve(chat);
+        if(docs.length > 0){
+          let chat = docs[0];
+          resolve(chat);
+        }
+        reject()
       });
     });
-    getChatPromise.then((chat) => {
-      setAllMessages(
-        chat.Messages.map((x) => {
-          x["isSelected"] = false;
-          return x;
-        })
-      );
-      setGroupFlag(chat.IsGroup);
-      getAllMembers(chat.Members);
-      setChatName(chat.ChatName);
-      setAssistantFlag(
-        chatId ===
-          props.connectionReducer.connection.current.currentUser.AssistantChatId
-      );
-    });
+    getChatPromise
+      .then((chat) => {
+        setAllMessages(
+          chat.Messages.map((x) => {
+            x["isSelected"] = false;
+            return x;
+          })
+        );
+        setGroupFlag(chat.IsGroup);
+        getAllMembers(chat.Members);
+        setChatName(chat.ChatName);
+        setAssistantFlag(
+          chatId ===
+            props.connectionReducer.connection.current.currentUser
+              .AssistantChatId
+        );
+      })
+      .catch(() => {
+        setAllMessages([])
+        setChatName(props.chatName)
+      });
   }, [props.chatId]);
 
   useEffect(() => {
@@ -230,7 +255,10 @@ const ChatScreen = (props) => {
     } else if (x.Sender == "System") {
       return <SystemMessage key={x._id} id={x._id} body={x.Body} />;
     } else if (isGroup) {
-      let senderName = memberInfo == null ? "" : memberInfo.FirstName + " " + memberInfo.LastName;
+      let senderName =
+        memberInfo == null
+          ? ""
+          : memberInfo.FirstName + " " + memberInfo.LastName;
       return (
         <OtherUserPublicMessage
           key={x._id}

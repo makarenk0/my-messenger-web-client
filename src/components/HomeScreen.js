@@ -23,18 +23,25 @@ import {
   getProjected,
   updateValue,
 } from "../actions/LocalDBActions";
-import { Button } from "react-bootstrap";
+import { Button, Modal} from "react-bootstrap";
 import SlidingPane from "react-sliding-pane";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "react-sliding-pane/dist/react-sliding-pane.css";
 import logo from "../images/logoLoader.png";
 
 import ChatRepresenter from "./ChatRepresenter";
+import OtherUsersScreen from './OtherUsersScreen'
+import CreateGroupChatScreen from './CreateGroupChatScreen'
 
 const HomeScreen = (props) => {
   const [allChats, setAllChats] = useState([]);
   const [isPaneOpen, setPane] = useState(false);
   const [currentOpendChat, setCurrentChat] = useState("");
+  const [newUserId, setNewUserId] = useState("")
+
+  const [chatName, setChatName] = useState("")
+
+  const [showOtherUsers, setShowOtherUsers] = useState(false)
 
   let history = useHistory();
 
@@ -109,19 +116,25 @@ const HomeScreen = (props) => {
   const updateAllChatsToDisplay = (local, updated) => {
     // updating "allChats" array which is used to display chats
     // increasing new messages counter
+    console.log(currentOpendChat)
     local = local.map((x) => {
       let update = updated.find((y) => y.chatId == x.chatId);
       if (typeof update !== "undefined") {
         //update counter only in case there is an update
         x.newMessagesNum +=
-          currentOpendChat !== x.chatId ? update.newMessagesNum : 0;
+          (currentOpendChat !== x.chatId) ? update.newMessagesNum : 0;
       }
       return x;
     });
 
     //adding new chats
     let newChats = updated.filter((x) => x.isNew);
-    local.unshift(...newChats);
+    local.unshift(...newChats.map(x => {
+      if(x.chatName === chatName){
+        x.newMessagesNum = 0
+      }
+      return x
+    }));
 
     //applying changes
     console.log("Changing all chats data to display");
@@ -258,21 +271,24 @@ const HomeScreen = (props) => {
   }, []);
 
   // in case of chat is pressed (navigating to "ChatScreen" and passing chatId )
-  const chatPressed = (chatId, chatName) => {
+  const chatPressed = (chatId, chatName, newUserId) => {
     let backFromChatIndex = allChats.findIndex((x) => x.chatId == chatId);
     let updated = allChats;
     if (updated[backFromChatIndex] != null) {
       updated[backFromChatIndex].newMessagesNum = 0;
       setAllChats(updated);
-
       props.updateValue(chatId, { NewMessagesNum: 0 }, () => {});
     }
     console.log(chatId)
+
+    setChatName(chatName)
     setCurrentChat(chatId);
+    setNewUserId(newUserId)
   };
 
   return (
     <div className="homeScreenContainer">
+      <OtherUsersScreen showOtherUsers={showOtherUsers} onClose={(flag) =>{setShowOtherUsers(flag)}} openChat={chatPressed}/>
       <SlidingPane
         className="some-custom-class"
         overlayClassName="some-custom-overlay-class"
@@ -295,6 +311,12 @@ const HomeScreen = (props) => {
           }}
         >
           Log out
+        </Button>
+        <Button onClick={() => {
+          setPane(false);
+          setShowOtherUsers(!showOtherUsers)
+          }}>
+          Contacts
         </Button>
       </SlidingPane>
       <div className="chatsPanel">
@@ -342,7 +364,7 @@ const HomeScreen = (props) => {
 
       <div className="chatScreen">
         {currentOpendChat === "" ? null : (
-          <ChatScreen chatId={currentOpendChat}></ChatScreen>
+          <ChatScreen chatId={currentOpendChat} chatName={chatName} newUserId={newUserId} setChatId={(id) => setCurrentChat(id)}></ChatScreen>
         )}
       </div>
     </div>

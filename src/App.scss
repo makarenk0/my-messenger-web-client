@@ -102,6 +102,22 @@
   }
 }
 
+
+.chatIcon {
+  display: table-cell;
+  width: 60px;
+  height: 100%;
+  div {
+    margin-top: 5px;
+    margin-left: 5px;
+    .fontAwesomeIcon {
+      margin-left: 50%;
+      margin-top: 8px;
+      transform: translate(-50%);
+    }
+  }
+}
+
 .chatRepresentorContainer {
   display: table;
   width: 100%;
@@ -112,20 +128,7 @@
     background-color: #67daf9;
   }
 
-  .chatIcon {
-    display: table-cell;
-    width: 60px;
-    height: 100%;
-    div {
-      margin-top: 5px;
-      margin-left: 5px;
-      .fontAwesomeIcon {
-        margin-left: 50%;
-        margin-top: 8px;
-        transform: translate(-50%);
-      }
-    }
-  }
+  
 
   .newMessagesCounterBlock {
     display: table-cell;
@@ -156,6 +159,9 @@
     }
   }
 }
+
+
+
 .homeScreenContainer{
   display: table;
   width: 100%;

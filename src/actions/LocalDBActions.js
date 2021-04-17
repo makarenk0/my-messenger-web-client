@@ -19,6 +19,13 @@ export const saveDocToDB = (docToSave, callback) => (
     }
   );
 
+  export const loadDocWithParams = (params, callback) => (
+    {
+      type: 'LOAD_DOC_WITH_PARAMS',
+      payload: {'params': params, 'callback': callback}
+    }
+  );
+
   export const removeDocFromDB = (_id, callback) => (
     {
       type: 'REMOVE_DOC',
