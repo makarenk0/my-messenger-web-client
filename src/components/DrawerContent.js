@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {removeDocFromDB, updateValue} from '../actions/LocalDBActions';
+import {closeWebsocketConnection} from '../actions/ConnectionActions'
 
 import {
   StyleSheet,
@@ -23,13 +24,14 @@ import {
 } from 'react-native';
 
 const DrawerContent = (props) => {
-  const logOut = async () => {
+  const logOut = () => {
     //remove all user data (saved chats, other data)
     props.removeDocFromDB({}, true, (err, numberOfRemoved) =>{
         console.log("All user data removed")
         console.log(numberOfRemoved)
     })
-    await AsyncStorage.setItem('loginData', JSON.stringify({remember: false})); //disabling auto log in
+    AsyncStorage.setItem('loginData', JSON.stringify({remember: false})); //disabling auto log in
+    props.closeWebsocketConnection()
     props.navigation.navigate('Log In');
   };
   return (
@@ -72,9 +74,10 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => {
-  const {localDBReducer} = state;
+  const {localDBReducer, connectionReducer} = state;
   return {
     localDBReducer,
+    connectionReducer
   };
 };
 
@@ -83,6 +86,7 @@ const mapDispatchToProps = (dispatch) =>
     {
       removeDocFromDB,
       updateValue,
+      closeWebsocketConnection
     },
     dispatch,
   );

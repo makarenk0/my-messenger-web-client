@@ -32,3 +32,11 @@ export const setSessionTokenAndUserInfo = (token, userInfo) => (
     payload: {"sessionToken": token, "userInfo": userInfo}
   }
 );
+
+
+export const closeWebsocketConnection = () => (
+  {
+    type: 'CLOSE_CONNECTION',
+    payload: {}
+  }
+)

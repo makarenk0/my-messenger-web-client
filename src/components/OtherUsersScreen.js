@@ -49,7 +49,7 @@ const OtherUsersScreen = (props) => {
         FindUsersRequest: searchField,
       };
 
-      props.sendDataToServer(3, true, finUsersObj, (response) => {
+      props.sendDataToServer('3', true, finUsersObj, (response) => {
         if(response.Status == "success"){
           console.log(response.Users)
           setResultUsers(response.Users)

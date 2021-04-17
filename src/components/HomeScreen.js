@@ -10,6 +10,7 @@ import {
   sendDataToServer,
   subscribeToUpdate,
   unsubscribeFromUpdate,
+  closeWebsocketConnection,
 } from "../actions/ConnectionActions";
 import {
   loadDB,
@@ -129,7 +130,7 @@ const HomeScreen = (props) => {
 
   useEffect(() => {
     let subscribeUpdate = new Promise((resolve, reject) => {
-      props.subscribeToUpdate(5, "homescreen", (data) => {
+      props.subscribeToUpdate('5', "homescreen", (data) => {
         resolve(data)
       });
     })
@@ -166,7 +167,7 @@ const HomeScreen = (props) => {
     };
 
     //after "LastChatsMessages" array formed - send it to server and subscribe for real-time update on packet number 5
-    props.sendDataToServer(7, true, regObj, (response) => {
+    props.sendDataToServer('7', true, regObj, (response) => {
       if (response.Status == "error") {
         //in case of some error
         console.log(response.Details);
@@ -289,6 +290,7 @@ const HomeScreen = (props) => {
             props.unsubscribeFromUpdate("homescreen", (removed) => {
               console.log(removed);
             });
+            props.closeWebsocketConnection()
             history.goBack();
           }}
         >
@@ -374,6 +376,7 @@ const mapDispatchToProps = (dispatch) =>
       removeFromArray,
       getProjected,
       updateValue,
+      closeWebsocketConnection
     },
     dispatch
   );

@@ -48,7 +48,7 @@ const LogInScreen = (props) => {
     };
     setLoading(true);
 
-    props.sendDataToServer(2, true, regObj, async (response) => {
+    props.sendDataToServer('2', true, regObj, async (response) => {
       if (response.Status === "error") {
         setErrorText(response.Details);
         setShow(true)

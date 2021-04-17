@@ -8,8 +8,7 @@ const INITIAL_STATE = {
 var onReceiveCallbacks = [];
 
 const formPacket = (packetType, payload) => {
-  let base64Payload =
-    String.fromCharCode(packetType + 48) + btoa(unescape(encodeURIComponent(payload))) + "~";
+  let base64Payload = packetType + btoa(unescape(encodeURIComponent(payload))) + "~";
   console.log(base64Payload);
   return base64Payload;
 };
@@ -101,7 +100,7 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
       );
 
       onReceiveCallbacks.unshift({
-        type: String.fromCharCode(action.payload.packetType + 48),
+        type: action.payload.packetType,
         disposable: action.payload.disposable,
         callback: action.payload.callback,
       });
@@ -118,7 +117,7 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
         onReceiveCallbacks[alreadyPresent].callback = action.payload.callback;
       } else {
         onReceiveCallbacks.unshift({
-          type: String.fromCharCode(action.payload.packetType + 48),
+          type: action.payload.packetType,
           id: action.payload.id,
           disposable: false,
           callback: action.payload.callback,
@@ -137,6 +136,9 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
       current["sessionToken"] = action.payload.sessionToken;
       current["currentUser"] = action.payload.userInfo
       return { current };
+    case "CLOSE_CONNECTION":
+      current.establishedConnection.close(1000, "User logged out")
+      return state;
     default:
       return state;
   }

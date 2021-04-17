@@ -24,9 +24,14 @@ import {
   getProjected,
   updateValue,
 } from "../actions/LocalDBActions";
-import MessageBox from "./MessageBox";
+
+import MyMessage from "./MessageContainers/MyMessage";
+import SystemMessage from "./MessageContainers/SystemMessage";
+import OtherUserPublicMessage from "./MessageContainers/OtherUserPublicMessage";
+import OtherUserPrivateMessage from "./MessageContainers/OtherUserPrivateMessage";
 
 const ChatScreen = (props) => {
+  console.log("chat opened");
   const chatId = props.chatId;
   const [toSend, setSendMessage] = useState("");
   const [allMessages, setAllMessages] = useState([]);
@@ -34,7 +39,8 @@ const ChatScreen = (props) => {
   const [reRenderFlag, setRerenderFlag] = useState(true);
   const [isGroup, setGroupFlag] = useState(false);
   const [membersInfo, setMembersInfo] = useState([]);
-  const [selectedMessages, setSelectedMessages] = useState([])
+  const [selectedMessagesNum, setSelectedMessagesNum] = useState(0);
+  const [isAssistant, setAssistantFlag] = useState(false);
 
   //load members list
   const getAllMembers = (members) => {
@@ -69,7 +75,7 @@ const ChatScreen = (props) => {
           UserIds: membersAbsentLocally,
         };
         console.log(finUsersObj);
-        props.sendDataToServer(3, true, finUsersObj, (response) => {
+        props.sendDataToServer("3", true, finUsersObj, (response) => {
           if (response.Status == "success") {
             setMembersInfo([
               ...membersInfo,
@@ -106,11 +112,16 @@ const ChatScreen = (props) => {
         ChatId: chatId,
         Body: toSend,
       };
-      props.sendDataToServer(4, true, sendObj, (response) => {
-        console.log(response);
-        // setAllMessages([response, ...allMessages])
-        // setRerenderFlag(!reRenderFlag)
-      });
+      props.sendDataToServer(
+        isAssistant ? "a" : "4",
+        true,
+        sendObj,
+        (response) => {
+          console.log(response);
+          // setAllMessages([response, ...allMessages])
+          // setRerenderFlag(!reRenderFlag)
+        }
+      );
     }
   };
 
@@ -128,101 +139,136 @@ const ChatScreen = (props) => {
       });
     });
     getChatPromise.then((chat) => {
-      setAllMessages(chat.Messages);
+      setAllMessages(
+        chat.Messages.map((x) => {
+          x["isSelected"] = false;
+          return x;
+        })
+      );
       setGroupFlag(chat.IsGroup);
       getAllMembers(chat.Members);
       setChatName(chat.ChatName);
+      setAssistantFlag(
+        chatId ===
+          props.connectionReducer.connection.current.currentUser.AssistantChatId
+      );
     });
   }, [props.chatId]);
 
   useEffect(() => {
-    props.subscribeToUpdate(5, "chatscreen", (data) => {
+    props.subscribeToUpdate("5", "chatscreen", (data) => {
       if (data.ChatId == chatId) {
-        let newMessages = data.NewMessages;
+        let newMessages = data.NewMessages.map((x) => {
+          x["isSelected"] = false;
+          return x;
+        });
         setAllMessages([...allMessages, ...newMessages]);
         setRerenderFlag(!reRenderFlag);
       }
     });
   }, [allMessages]);
 
-  // useEffect(() => {
-  //   console.log("All messages changed!!!!!!!!!!!")
-  //   console.log(allMessages)
-  // }, [allMessages])
+  const messageOnClick = (messageId) => {
+    let index = allMessages.findIndex((x) => x._id === messageId);
 
-  // action when leave screen
-  // useEffect(() => {
-  //   const unsubscribe = props.navigation.addListener('beforeRemove', () => {
-
-  //   });
-
-  //   return unsubscribe;
-  // }, [props.navigation]);
-
-  const decapsulateDateFromId = (id) => {
-    let decapsulatedDate = parseInt(id.substring(0, 8), 16) * 1000;
-    let date = new Date(decapsulatedDate);
-    return date.toTimeString().split(" ")[0].substr(0, 5);
+    if (index !== -1) {
+      console.log(index);
+      let messages = allMessages;
+      let previousState = messages[index].isSelected;
+      messages[index].isSelected = !previousState;
+      if (previousState) {
+        setSelectedMessagesNum(selectedMessagesNum - 1);
+      } else {
+        setSelectedMessagesNum(selectedMessagesNum + 1);
+      }
+      setAllMessages(messages);
+    }
   };
 
-  const messageOnClick = (messageId) => {
-    if(selectedMessages.findIndex(x => x === messageId) !== -1){
-      setSelectedMessages(selectedMessages.filter(x => x !== messageId))
-    }
-    else{
-      setSelectedMessages([...selectedMessages, messageId])
-    }
-  }
-
-  const deleteMessages = () =>{
-    filterDisplayMessages()
-    deleteMessagesFromStorage()
-  }
-
+  const deleteMessages = () => {
+    filterDisplayMessages();
+    deleteMessagesFromStorage();
+  };
 
   const filterDisplayMessages = () => {
-    let filtered = allMessages.filter(x => {
-      return selectedMessages.includes(x._id) ? false : true
-    })
-    setAllMessages(filtered)
-  }
-
+    let filtered = allMessages.filter((x) => {
+      return !x.isSelected;
+    });
+    setAllMessages(filtered);
+  };
 
   const deleteMessagesFromStorage = () => {
-    props.removeManyFromArray(chatId, "Messages", "_id", selectedMessages, () => {})
-    setSelectedMessages([])
-  }
+    let idsToDelete = allMessages.filter((x) => x.isSelected).map((x) => x._id);
+    props.removeManyFromArray(chatId, "Messages", "_id", idsToDelete, () => {});
+    setSelectedMessagesNum(0);
+  };
 
   // useEffect(() => {
 
   // }, [selectedMessages])
 
-
   const renderItem = (x) => {
+    console.log(x.isSelected);
+
     let memberInfoIndex = membersInfo.findIndex((y) => y.UserId == x.Sender);
     let memberInfo;
     if (memberInfoIndex != -1) {
       memberInfo = membersInfo[memberInfoIndex];
     }
 
-    return (
-      <MessageBox
-        _id={x._id}
-        key={x._id}
-        messageOnClick={messageOnClick}
-        body={x.Body}
-        isMine={props.connectionReducer.connection.current.currentUser.UserId == x.Sender}
-        isSystem={x.Sender == "System"}
-        isGroup={isGroup}
-        isSelected={selectedMessages.findIndex(y => y._id === x._id) !== -1}
-        memberName={
-          memberInfo == null
-            ? ""
-            : memberInfo.FirstName + " " + memberInfo.LastName
-        }
-        timestamp={decapsulateDateFromId(x._id)}
-      ></MessageBox>
-    );
+    if (
+      props.connectionReducer.connection.current.currentUser.UserId === x.Sender
+    ) {
+      return (
+        <MyMessage
+          key={x._id}
+          id={x._id}
+          body={x.Body}
+          messageOnClick={messageOnClick}
+        />
+      );
+    } else if (x.Sender == "System") {
+      return <SystemMessage key={x._id} id={x._id} body={x.Body} />;
+    } else if (isGroup) {
+      let senderName = memberInfo == null ? "" : memberInfo.FirstName + " " + memberInfo.LastName;
+      return (
+        <OtherUserPublicMessage
+          key={x._id}
+          id={x._id}
+          senderName={senderName}
+          body={x.Body}
+          messageOnClick={messageOnClick}
+        />
+      );
+    } else {
+      return (
+        <OtherUserPrivateMessage
+          key={x._id}
+          id={x._id}
+          body={x.Body}
+          messageOnClick={messageOnClick}
+        />
+      );
+    }
+
+    // return (
+    //   <MessageBox
+    //     _id={x._id}
+    //     key={x._id}
+    //     messageOnClick={messageOnClick}
+    //     body={x.Body}
+    //     isMine={props.connectionReducer.connection.current.currentUser.UserId == x.Sender}
+    //     isSystem={x.Sender == "System"}
+    //     isGroup={isGroup}
+    //     isSelected={selectedMessages.findIndex(y => y._id === x._id) !== -1}
+    //     memberName={
+    //       memberInfo == null
+    //         ? ""
+    //         : memberInfo.FirstName + " " + memberInfo.LastName
+    //     }
+    //     timestamp={decapsulateDateFromId(x._id)}
+    //   ></MessageBox>
+    //);
   };
 
   // const ChatThreadSeparator = (item) =>{
@@ -282,17 +328,28 @@ const ChatScreen = (props) => {
           <p>{chatName}</p>
         </div>
         <div className="headerButtons">
-            <Button style={{display: selectedMessages.length > 0 ? "block" : "none"}} onClick={deleteMessages}>Delete</Button>
+          <Button
+            style={{ display: selectedMessagesNum > 0 ? "block" : "none" }}
+            onClick={deleteMessages}
+          >
+            Delete
+          </Button>
         </div>
       </div>
       <div className="messageThread">
         {allMessages.map((x) => {
           return renderItem(x);
         })}
-        <div id="anchor"></div>
+        <div key={"anchor"} id="anchor"></div>
       </div>
       <div className="sendMessageBox">
-        <input placeholder="Enter your message" value={toSend} onChange={(e) => {setSendMessage(e.target.value)}}></input>
+        <input
+          placeholder="Enter your message"
+          value={toSend}
+          onChange={(e) => {
+            setSendMessage(e.target.value);
+          }}
+        ></input>
         <div>
           <Button
             className="sendButton"
@@ -305,7 +362,7 @@ const ChatScreen = (props) => {
               marginTop: "5px",
             }}
             onClick={() => {
-              sendMessage()
+              sendMessage();
             }}
           >
             <FontAwesomeIcon
@@ -318,37 +375,6 @@ const ChatScreen = (props) => {
         </div>
       </div>
     </div>
-    // <View style={styles.mainContainer}>
-    //   <View style={styles.chatHeader}>
-    //     <Image style={styles.chatImage}></Image>
-    //     <Text style={styles.chatName}>{props.route.params.chatName}</Text>
-    //   </View>
-    //   <View style={styles.messagesWindow}>
-    //     <FlatList style={styles.messageThread}
-    //     inverted
-    //     data={allMessages}
-    //     renderItem={renderItem}
-    //     ItemSeparatorComponent = { ChatThreadSeparator }
-    //     keyExtractor={(item) => item._id}
-    //     extraData={reRenderFlag}
-    //     onEndReached={chatEndRiched}>
-    //     </FlatList>
-    //   </View>
-    //   <View style={styles.sendMessageBox}>
-    //     <TextInput
-    //       style={styles.inputStyle}
-    //       value={toSend}
-    //       onChangeText={(text) => setSendMessage(text)}
-    //       placeholder="Message"></TextInput>
-    //     <TouchableOpacity style={styles.sendButton} onPress={() =>{sendMessage()}}>
-    //       <FontAwesomeIcon
-    //         icon={faPaperPlane}
-    //         size={28}
-    //         style={styles.sendIcon}
-    //       />
-    //     </TouchableOpacity>
-    //   </View>
-    // </View>
   );
 };
 
