@@ -276,6 +276,14 @@
   }
 }
 
+.sidePaneItem{
+  margin-top: 10px;
+  width: 100%;
+  b{
+    margin-left: 10px;
+  }
+}
+
 .listItem{
   &:hover{
     background-color: #67daf9;

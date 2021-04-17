@@ -23,26 +23,27 @@ import {
   getProjected,
   updateValue,
 } from "../actions/LocalDBActions";
-import { Button, Modal} from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import SlidingPane from "react-sliding-pane";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "react-sliding-pane/dist/react-sliding-pane.css";
 import logo from "../images/logoLoader.png";
 
 import ChatRepresenter from "./ChatRepresenter";
-import OtherUsersScreen from './OtherUsersScreen'
-import CreateGroupChatScreen from './CreateGroupChatScreen'
+import OtherUsersScreen from "./OtherUsersScreen";
+import CreateGroupChatScreen from "./CreateGroupChatScreen";
+import SlidingPaneContent from "./SlidingPaneContent";
 
 const HomeScreen = (props) => {
   const [allChats, setAllChats] = useState([]);
   const [isPaneOpen, setPane] = useState(false);
   const [currentOpendChat, setCurrentChat] = useState("");
-  const [newUserId, setNewUserId] = useState("")
+  const [newUserId, setNewUserId] = useState("");
 
-  const [chatName, setChatName] = useState("")
+  const [chatName, setChatName] = useState("");
 
-  const [showOtherUsers, setShowOtherUsers] = useState(false)
-  const [showPublicChats, setShowPublicChats] = useState(false)
+  const [showOtherUsers, setShowOtherUsers] = useState(false);
+  const [showPublicChats, setShowPublicChats] = useState(false);
 
   let history = useHistory();
 
@@ -93,10 +94,10 @@ const HomeScreen = (props) => {
 
       getCurrentMessagesNumPromise.then((newElement) => {
         //updating "LastMessageId" field
-        console.log("Current chat:")
-        console.log(currentOpendChat)
-        console.log("Chat update on:")
-        console.log(chat.ChatId)
+        console.log("Current chat:");
+        console.log(currentOpendChat);
+        console.log("Chat update on:");
+        console.log(chat.ChatId);
         props.updateValue(
           chat.ChatId,
           {
@@ -117,25 +118,27 @@ const HomeScreen = (props) => {
   const updateAllChatsToDisplay = (local, updated) => {
     // updating "allChats" array which is used to display chats
     // increasing new messages counter
-    console.log(currentOpendChat)
+    console.log(currentOpendChat);
     local = local.map((x) => {
       let update = updated.find((y) => y.chatId == x.chatId);
       if (typeof update !== "undefined") {
         //update counter only in case there is an update
         x.newMessagesNum +=
-          (currentOpendChat !== x.chatId) ? update.newMessagesNum : 0;
+          currentOpendChat !== x.chatId ? update.newMessagesNum : 0;
       }
       return x;
     });
 
     //adding new chats
     let newChats = updated.filter((x) => x.isNew);
-    local.unshift(...newChats.map(x => {
-      if(x.chatName === chatName){
-        x.newMessagesNum = 0
-      }
-      return x
-    }));
+    local.unshift(
+      ...newChats.map((x) => {
+        if (x.chatName === chatName) {
+          x.newMessagesNum = 0;
+        }
+        return x;
+      })
+    );
 
     //applying changes
     console.log("Changing all chats data to display");
@@ -144,10 +147,10 @@ const HomeScreen = (props) => {
 
   useEffect(() => {
     let subscribeUpdate = new Promise((resolve, reject) => {
-      props.subscribeToUpdate('5', "homescreen", (data) => {
-        resolve(data)
+      props.subscribeToUpdate("5", "homescreen", (data) => {
+        resolve(data);
       });
-    })
+    });
     subscribeUpdate.then((data) => {
       console.log(data);
       console.log(data.IsNew);
@@ -168,7 +171,7 @@ const HomeScreen = (props) => {
         newMessagesNum: data.NewMessages.length,
       });
       updateAllChatsToDisplay(allChats, ChatRepresentorsUpdatedData);
-    })
+    });
   }, [allChats, currentOpendChat]);
 
   const zeroPacketRequest = (LastChatsMessages, ChatRepresentorsLocalData) => {
@@ -181,7 +184,7 @@ const HomeScreen = (props) => {
     };
 
     //after "LastChatsMessages" array formed - send it to server and subscribe for real-time update on packet number 5
-    props.sendDataToServer('7', true, regObj, (response) => {
+    props.sendDataToServer("7", true, regObj, (response) => {
       if (response.Status == "error") {
         //in case of some error
         console.log(response.Details);
@@ -280,18 +283,30 @@ const HomeScreen = (props) => {
       setAllChats(updated);
       props.updateValue(chatId, { NewMessagesNum: 0 }, () => {});
     }
-    console.log(chatId)
+    console.log(chatId);
 
-    setChatName(chatName)
+    setChatName(chatName);
     setCurrentChat(chatId);
-    setNewUserId(newUserId)
+    setNewUserId(newUserId);
   };
 
   return (
     <div className="homeScreenContainer">
-      <OtherUsersScreen showOtherUsers={showOtherUsers} onClose={(flag) =>{setShowOtherUsers(flag)}} openChat={chatPressed}/>
-      <CreateGroupChatScreen showPublicChats={showPublicChats} onClose={(flag) =>{setShowPublicChats(flag)}}/>
+      <OtherUsersScreen
+        showOtherUsers={showOtherUsers}
+        onClose={(flag) => {
+          setShowOtherUsers(flag);
+        }}
+        openChat={chatPressed}
+      />
+      <CreateGroupChatScreen
+        showPublicChats={showPublicChats}
+        onClose={(flag) => {
+          setShowPublicChats(flag);
+        }}
+      />
       <SlidingPane
+        hideHeader={true}
         className="some-custom-class"
         overlayClassName="some-custom-overlay-class"
         isOpen={isPaneOpen}
@@ -302,30 +317,27 @@ const HomeScreen = (props) => {
           setPane(false);
         }}
       >
-        <Button
-          onClick={() => {
+        <SlidingPaneContent
+          userInfo={props.connectionReducer.connection.current.currentUser}
+          logOutOnclick={() => {
             localStorage.clear();
             props.unsubscribeFromUpdate("homescreen", (removed) => {
               console.log(removed);
             });
-            props.closeWebsocketConnection()
+            props.closeWebsocketConnection();
             history.goBack();
           }}
-        >
-          Log out
-        </Button>
-        <Button onClick={() => {
-          setPane(false);
-          setShowOtherUsers(!showOtherUsers)
-          }}>
-          Contacts
-        </Button>
-        <Button onClick={() => {
-          setPane(false);
-          setShowPublicChats(!showPublicChats)
-          }}>
-          Add public chat
-        </Button>
+          contactsOnClick={
+            () => {
+              setPane(false);
+              setShowOtherUsers(!showOtherUsers);
+            }
+          }
+          publicChatsOnClick={() => {
+            setPane(false);
+            setShowPublicChats(!showPublicChats);
+          }}
+        />
       </SlidingPane>
       <div className="chatsPanel">
         <div className="topPanel">
@@ -372,7 +384,12 @@ const HomeScreen = (props) => {
 
       <div className="chatScreen">
         {currentOpendChat === "" ? null : (
-          <ChatScreen chatId={currentOpendChat} chatName={chatName} newUserId={newUserId} setChatId={(id) => setCurrentChat(id)}></ChatScreen>
+          <ChatScreen
+            chatId={currentOpendChat}
+            chatName={chatName}
+            newUserId={newUserId}
+            setChatId={(id) => setCurrentChat(id)}
+          ></ChatScreen>
         )}
       </div>
     </div>
@@ -406,7 +423,7 @@ const mapDispatchToProps = (dispatch) =>
       removeFromArray,
       getProjected,
       updateValue,
-      closeWebsocketConnection
+      closeWebsocketConnection,
     },
     dispatch
   );
