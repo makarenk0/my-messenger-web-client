@@ -8,7 +8,8 @@ const INITIAL_STATE = {
 var onReceiveCallbacks = [];
 
 const formPacket = (packetType, payload) => {
-  let base64Payload = packetType + btoa(unescape(encodeURIComponent(payload))) + "~";
+  let base64Payload =
+    packetType + btoa(unescape(encodeURIComponent(payload))) + "~";
   console.log(base64Payload);
   return base64Payload;
 };
@@ -40,26 +41,31 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
       current["establishedConnection"] = websocket;
 
       current.establishedConnection.onmessage = (e) => {
-        let response = e.data;
-        let payloadB64 = response.substr(1, response.length - 2);
-        let fromBase64 = atob(payloadB64);
-        console.log(fromBase64);
+        var reader = new FileReader();
+        reader.addEventListener("loadend", function () {
+          let response = reader.result;
+          console.log(response)
+          let payloadB64 = response.substr(1, response.length - 2);
+          let fromBase64 = atob(payloadB64);
+          console.log(fromBase64);
 
-        let onReceive = onReceiveCallbacks.filter(
-          (x) => x.type == response.charAt(0)
-        );
-        onReceive.forEach((el) => {
-          if (el.disposable) {
-            // if disposable use callback once and then remove object from callbacks array
-            let index = onReceiveCallbacks.findIndex(
-              (x) => x.type == response.charAt(0)
-            );
-            onReceiveCallbacks.splice(index, 1);
-            console.log("Callback with type " + el.type + " was disposed");
-          }
-          let getObj = JSON.parse(fromBase64);
-          el.callback(getObj);
+          let onReceive = onReceiveCallbacks.filter(
+            (x) => x.type == response.charAt(0)
+          );
+          onReceive.forEach((el) => {
+            if (el.disposable) {
+              // if disposable use callback once and then remove object from callbacks array
+              let index = onReceiveCallbacks.findIndex(
+                (x) => x.type == response.charAt(0)
+              );
+              onReceiveCallbacks.splice(index, 1);
+              console.log("Callback with type " + el.type + " was disposed");
+            }
+            let getObj = JSON.parse(fromBase64);
+            el.callback(getObj);
+          });
         });
+        reader.readAsText(e.data);
       };
       // current.establishedConnection.on('data', function (data) {
       //   let result = '';
@@ -134,10 +140,10 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
 
     case "SET_SESSION_TOKEN_AND_USER_INFO":
       current["sessionToken"] = action.payload.sessionToken;
-      current["currentUser"] = action.payload.userInfo
+      current["currentUser"] = action.payload.userInfo;
       return { current };
     case "CLOSE_CONNECTION":
-      current.establishedConnection.close(1000, "User logged out")
+      current.establishedConnection.close(1000, "User logged out");
       return state;
     default:
       return state;
