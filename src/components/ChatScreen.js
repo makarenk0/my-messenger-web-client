@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, createRef } from "react";
 
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -41,6 +41,12 @@ const ChatScreen = (props) => {
   const [membersInfo, setMembersInfo] = useState([]);
   const [selectedMessagesNum, setSelectedMessagesNum] = useState(0);
   const [isAssistant, setAssistantFlag] = useState(false);
+  const messagesEnd = useRef(null)
+
+
+  const scrollToBottom = () => {
+    messagesEnd.current?.scrollIntoView({ behavior: "smooth" });
+  }
 
   //load members list
   const getAllMembers = (members) => {
@@ -189,6 +195,7 @@ const ChatScreen = (props) => {
         });
         setAllMessages([...allMessages, ...newMessages]);
         setRerenderFlag(!reRenderFlag);
+        scrollToBottom()
       }
     });
   }, [allMessages]);
@@ -368,7 +375,7 @@ const ChatScreen = (props) => {
         {allMessages.map((x) => {
           return renderItem(x);
         })}
-        <div key={"anchor"} id="anchor"></div>
+        <div key={"anchor"} ref={messagesEnd}></div>
       </div>
       <div className="sendMessageBox">
         <input
