@@ -4,8 +4,8 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { showModal, hideModal } from "../actions/ModalActions";
 import { Form, Button, Alert } from "react-bootstrap";
-import logo from '../images/logoLoader.png'
-import logoCenter from '../images/message64.png'
+import logo from "../images/logoLoader.png";
+import logoCenter from "../images/message64.png";
 import {
   connectToServer,
   sendDataToServer,
@@ -41,20 +41,23 @@ const LogInScreen = (props) => {
 
   const logIntoAccount = (login, password, rememberUser) => {
     setErrorText("");
-    setShow(false)
+    setShow(false);
     let regObj = {
       Login: login,
       Password: password,
     };
     setLoading(true);
 
-    props.sendDataToServer('2', true, regObj, async (response) => {
+    props.sendDataToServer("2", true, regObj, async (response) => {
       if (response.Status === "error") {
         setErrorText(response.Details);
-        setShow(true)
+        setShow(true);
       } else {
         console.log(response);
-        props.setSessionTokenAndUserInfo(response.SessionToken, response.UserInfo);
+        props.setSessionTokenAndUserInfo(
+          response.SessionToken,
+          response.UserInfo
+        );
         let saveLogPassObj;
         if (rememberUser) {
           saveLogPassObj = {
@@ -115,7 +118,7 @@ const LogInScreen = (props) => {
   }, []);
 
   const signInButtonPressed = (e) => {
-    
+    localStorage.clear();
     logIntoAccount(loginValue, passwordValue, rememberIsSelected);
   };
 
@@ -124,34 +127,55 @@ const LogInScreen = (props) => {
     history.push("/signUp");
   };
 
-  
-
   return (
     <div className="login">
-      <img src={logo} style={{animation: `spin 3s linear infinite`}} className="loginLogo"> 
-      </img>
+      <img
+        src={logo}
+        style={{ animation: `spin 3s linear infinite` }}
+        className="loginLogo"
+      ></img>
       <img src={logoCenter} className="loginCenter"></img>
       <Form className="loginForm">
-      <Alert key={"logInAlert"} className="logInError" show={show} variant={"danger"} onClose={() => setShow(false)} dismissible>{errorText}</Alert>
+        <Alert
+          key={"logInAlert"}
+          className="logInError"
+          show={show}
+          variant={"danger"}
+          onClose={() => setShow(false)}
+          dismissible
+        >
+          {errorText}
+        </Alert>
         <Form.Group size="lg" controlId="text">
           <Form.Label>Login</Form.Label>
           <Form.Control
             autoFocus
             type="text"
-            onChange={e => setLoginValue(e.target.value)} value={loginValue}
+            onChange={(e) => setLoginValue(e.target.value)}
+            value={loginValue}
           />
         </Form.Group>
         <Form.Group size="lg" controlId="password">
           <Form.Label>Password</Form.Label>
           <Form.Control
             type="password"
-            onChange={e => setPasswordValue(e.target.value)} value={passwordValue}
+            onChange={(e) => setPasswordValue(e.target.value)}
+            value={passwordValue}
           />
+        </Form.Group>
+        <Form.Group controlId="formBasicCheckbox">
+          <Form.Check type="checkbox" label="Remember me" value={rememberIsSelected} onChange={() => {setRemember(!rememberIsSelected)}} />
         </Form.Group>
         <Button block size="lg" type="button" onClick={signInButtonPressed}>
           Log in
         </Button>
-        <Button block size="lg" type="button" variant="outline-info" onClick={signUpButtonPressed}>
+        <Button
+          block
+          size="lg"
+          type="button"
+          variant="outline-info"
+          onClick={signUpButtonPressed}
+        >
           Sign up
         </Button>
       </Form>
