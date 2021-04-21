@@ -41,12 +41,11 @@ const ChatScreen = (props) => {
   const [membersInfo, setMembersInfo] = useState([]);
   const [selectedMessagesNum, setSelectedMessagesNum] = useState(0);
   const [isAssistant, setAssistantFlag] = useState(false);
-  const messagesEnd = useRef(null)
+  const messagesEnd = useRef(null);
 
-
-  const scrollToBottom = () => {
-    messagesEnd.current?.scrollIntoView({ behavior: "smooth" });
-  }
+  const scrollToBottom = (scrollType) => {
+    messagesEnd.current?.scrollIntoView({ behavior: scrollType });
+  };
 
   //load members list
   const getAllMembers = (members) => {
@@ -141,7 +140,7 @@ const ChatScreen = (props) => {
         props.sendDataToServer("6", true, sendObj, (response) => {
           //only for private chats
           console.log(response);
-          props.setChatId(response.ChatId)
+          props.setChatId(response.ChatId);
           setAllMessages([...response.NewMessages, ...allMessages]);
         });
       }
@@ -154,13 +153,14 @@ const ChatScreen = (props) => {
 
   //getting chat data
   useEffect(() => {
+    
     let getChatPromise = new Promise((resolve, reject) => {
       props.loadDocFromDB(chatId, (docs) => {
-        if(docs.length > 0){
+        if (docs.length > 0) {
           let chat = docs[0];
           resolve(chat);
         }
-        reject()
+        reject();
       });
     });
     getChatPromise
@@ -181,8 +181,8 @@ const ChatScreen = (props) => {
         );
       })
       .catch(() => {
-        setAllMessages([])
-        setChatName(props.chatName)
+        setAllMessages([]);
+        setChatName(props.chatName);
       });
   }, [props.chatId]);
 
@@ -195,7 +195,7 @@ const ChatScreen = (props) => {
         });
         setAllMessages([...allMessages, ...newMessages]);
         setRerenderFlag(!reRenderFlag);
-        scrollToBottom()
+        scrollToBottom("smooth");
       }
     });
   }, [allMessages]);
@@ -235,9 +235,9 @@ const ChatScreen = (props) => {
     setSelectedMessagesNum(0);
   };
 
-  // useEffect(() => {
-
-  // }, [selectedMessages])
+  useEffect(() => {
+    scrollToBottom("auto")
+  }, [chatName])
 
   const renderItem = (x) => {
     console.log(x.isSelected);
@@ -260,7 +260,7 @@ const ChatScreen = (props) => {
         />
       );
     } else if (x.Sender == "System") {
-      return <SystemMessage key={x._id} id={x._id} body={x.Body} />;
+      return (<SystemMessage key={x._id} id={x._id} body={x.Body} />);
     } else if (isGroup) {
       let senderName =
         memberInfo == null
@@ -338,8 +338,26 @@ const ChatScreen = (props) => {
     console.log("end reached");
   };
 
+  const leavePublicChat = () => {
+    let sendObj = {
+      EventType: 1,
+      Event: {
+        ChatId: chatId
+      }
+    }
+    props.sendDataToServer("p", true, sendObj, (response) => {
+      if(response.Status==="success"){
+        props.removeDocFromDB(chatId, () =>{})
+        props.onLeaveChat()
+      }
+      else{
+        console.log(response)
+      }
+    });
+  }
+
   return (
-    <div>
+    <div style={chatId == null ? {display: "none"} : {display: "block"}}>
       <div className="chatHeader">
         <div className="iconContainer">
           <div
@@ -362,13 +380,16 @@ const ChatScreen = (props) => {
         <div className="chatName">
           <p>{chatName}</p>
         </div>
-        <div className="headerButtons">
-          <Button
-            style={{ display: selectedMessagesNum > 0 ? "block" : "none" }}
-            onClick={deleteMessages}
-          >
-            Delete
-          </Button>
+        <div>
+          <div className="headerButtons">
+            <Button style={{display: isGroup ? "block" : "none"}} onClick={leavePublicChat}>Leave</Button>
+            <Button
+              style={{ display: selectedMessagesNum > 0 ? "block" : "none" }}
+              onClick={deleteMessages}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
       </div>
       <div className="messageThread">

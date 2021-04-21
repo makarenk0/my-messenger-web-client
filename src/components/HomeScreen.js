@@ -290,6 +290,12 @@ const HomeScreen = (props) => {
     setNewUserId(newUserId);
   };
 
+
+  const leaveChat = () => {
+    setAllChats(allChats.filter(x => x.chatId !== currentOpendChat))
+    setCurrentChat(null);
+  }
+
   return (
     <div className="homeScreenContainer">
       <OtherUsersScreen
@@ -389,6 +395,7 @@ const HomeScreen = (props) => {
             chatName={chatName}
             newUserId={newUserId}
             setChatId={(id) => setCurrentChat(id)}
+            onLeaveChat={() => leaveChat()}
           ></ChatScreen>
         )}
       </div>

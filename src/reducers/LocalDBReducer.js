@@ -41,13 +41,9 @@ const localDBReducer = (state = INITIAL_STATE, action) => {
       }
       action.payload.callback(results)
       return state;
-    case "REMOVE_DOC":
-      //TO DO: implement
-      // current.DB.remove(
-      //   action.payload.parametrsObj,
-      //   {multi: action.payload.multi},
-      //   action.payload.callback,
-      // );
+    case "REMOVE_DOC_BY_ID":
+      localStorage.removeItem(action.payload.id)
+      action.payload.callback()
       return state;
     case "ADD_ONE_TO_ARRAY":
       let itemFoundArr = JSON.parse(localStorage.getItem(action.payload._id));

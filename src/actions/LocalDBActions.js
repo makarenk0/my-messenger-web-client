@@ -28,7 +28,7 @@ export const saveDocToDB = (docToSave, callback) => (
 
   export const removeDocFromDB = (_id, callback) => (
     {
-      type: 'REMOVE_DOC',
+      type: 'REMOVE_DOC_BY_ID',
       payload: {'_id': _id, 'callback': callback}
     }
   );
