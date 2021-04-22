@@ -1,0 +1,322 @@
+@media all and (min-width: 480px) {
+  .login {
+    padding: 60px 0;
+    margin-top: 20px;
+
+    .loginForm {
+      margin-top: 80px;
+    }
+    .loginLogo {
+      width: 200px;
+      display: block;
+      margin: auto;
+    }
+    .loginCenter {
+      width: 50px;
+      margin-top: -115px;
+      position: absolute;
+      margin-left: 50%;
+      transform: translate(-50%);
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    }
+    .logInError {
+      position: absolute;
+      margin-top: -60px;
+      width: 320px;
+    }
+  }
+
+  .login form {
+    margin: 0 auto;
+    max-width: 320px;
+  }
+}
+
+@media all and (min-width: 480px) {
+  .signUp {
+    padding: 60px 0;
+    margin-top: 20px;
+
+    .signUpForm {
+      margin-top: 80px;
+    }
+    .loginLogo {
+      width: 200px;
+      display: block;
+      margin: auto;
+    }
+    .loginCenter {
+      width: 50px;
+      margin-top: -115px;
+      position: absolute;
+      margin-left: 50%;
+      transform: translate(-50%);
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    }
+    .signUpError {
+      position: absolute;
+      margin-top: -60px;
+      margin-left: 50%;
+      transform: translate(-50%);
+      width: 530px;
+    }
+
+    .datePicker {
+      width: 100%;
+    }
+
+    .react-datepicker__input-container input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      padding-left: 10px;
+      &::after {
+        border: 1px solid #ced4da;
+      }
+    }
+    .react-datepicker__input-container {
+      border: none;
+    }
+  }
+
+  .signUp form {
+    margin: 0 auto;
+    max-width: 320px;
+  }
+}
+
+
+.chatIcon {
+  display: table-cell;
+  width: 60px;
+  height: 100%;
+  div {
+    margin-top: 5px;
+    margin-left: 5px;
+    .fontAwesomeIcon {
+      margin-left: 50%;
+      margin-top: 8px;
+      transform: translate(-50%);
+    }
+  }
+}
+
+.chatRepresentorContainer {
+  display: table;
+  width: 100%;
+  height: 60px;
+  border: 1px solid #dedede;
+
+  &:active{
+    background-color: #67daf9;
+  }
+
+  
+
+  .newMessagesCounterBlock {
+    display: table-cell;
+    .newMessagesCounterBox {
+      margin-top: 15px;
+      p {
+        float: right;
+        background-color: #67daf9;
+        width: fit-content;
+        padding-left: 5px;
+        padding-right: 5px;
+        border-radius: 10px;
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .chatNameBlock {
+    display: table-cell;
+    vertical-align: middle;
+    .chatNameBox {
+      margin-left: 15px;
+      p {
+        float: left;
+        font-family: Arial;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+
+
+.homeScreenContainer{
+  display: table;
+  width: 100%;
+  
+  .chatsPanel {
+    display: table-cell;
+    width: 400px;
+    vertical-align: top;
+    //height: 100vh;
+    border-right: 1px solid #dedede;
+    .topPanel{
+      height: 50px;
+      padding-top: 5px;
+      width: 100%;
+      background-color: #100C08;
+      display: table;
+      .slidePaneButton{
+        display: table-cell;
+      }
+      .appName{
+        display: table-cell;
+        vertical-align: middle;
+        p{
+          color: aliceblue;
+          font-size: 25px;
+          font-weight: bold;
+          margin-top: 5px;
+        }
+        
+      }
+      .appLogo{
+        display: table-cell;
+        .homeScreenLogo{
+          width: 40px;
+          margin-top: 5px;
+        }
+      }
+    }
+  }
+
+
+  .chatScreen{
+    display: table-cell;
+    vertical-align: top;
+    height: 100vh;
+    .chatHeader{
+      background-color: #100C08;
+      height: 6.6vh;
+      display: table;
+      width: 100%;
+
+      .headerButtons{
+        margin-top: 13px;
+        float: right;
+        display: grid;
+        grid-template-columns: 100px 100px 100px;
+        button{
+          width: 90px;
+        }
+      }
+      .iconContainer{
+        vertical-align: top;
+        width: 50px;
+        display: table-cell;
+        .fontAwesomeIcon {
+          margin-left: 50%;
+          margin-top: 8px;
+          transform: translate(-50%);
+        }
+      }
+      .chatName{
+        vertical-align: top;
+        display: table-cell;
+        p{
+          margin-left: 30px;
+          font-size: 30px;
+          text-align: start;
+          padding-top: 5px;
+          color: #fff;
+          font-weight: bold;
+          margin-bottom: 0px;
+        }
+      }
+      
+    }
+    .messageThread{
+      padding-top: 20px;
+      height: 87.3vh;
+      overflow-y: scroll;
+    }
+    .sendMessageBox{
+      display: table;
+      background-color: #1f2833;
+      height: 5vh;
+      width: 100%;
+      padding-top: 10px;
+      padding-left: 10px;
+      input{
+        display: table-cell;
+        vertical-align: top;
+        width: 100%;
+        height: 40px;
+        border-radius: 5px;
+        border: 1px solid #67daf9;
+        &:focus{
+          outline: none;
+        }
+      }
+      div{
+        display: table-cell;
+        vertical-align: top;
+        .sendButton{
+          position: relative;
+          top: -6px;
+        }
+      }
+    }
+  }
+}
+
+.sidePaneItem{
+  margin-top: 10px;
+  width: 100%;
+  b{
+    margin-left: 10px;
+  }
+}
+
+.listItem{
+  &:hover{
+    background-color: #67daf9;
+    transition: background-color 1s ease-in-out;
+  }
+}
+
+
+/* width */
+*::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+*::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+*::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+*::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+
+
