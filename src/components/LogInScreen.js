@@ -11,7 +11,7 @@ import {
   sendDataToServer,
   setSessionTokenAndUserInfo,
 } from "../actions/ConnectionActions";
-import { LOCAL_SERVER_IP, CONNECTING_TIMEOUT_MILLIS } from "../configs";
+import { LOCAL_SERVER_IP, GCP_SERVER_IP, CONNECTING_TIMEOUT_MILLIS } from "../configs";
 
 const LogInScreen = (props) => {
   const [errorText, setErrorText] = useState("");
@@ -97,7 +97,7 @@ const LogInScreen = (props) => {
         }
       };
       await props.connectToServer(
-        LOCAL_SERVER_IP,
+        GCP_SERVER_IP,
         (address) => {
           console.log("Connected!!!!");
           connected = true;
