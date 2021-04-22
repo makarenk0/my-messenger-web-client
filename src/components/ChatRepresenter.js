@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import assistantLogo from "../images/assistant_logo.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const ChatRepresenter = (props) => {
@@ -12,7 +12,8 @@ const ChatRepresenter = (props) => {
     <div className="chatRepresentorContainer" style={props.isSelected ? {backgroundColor: "#45b6fe"} : null} onClick={() =>{chatPressed()}}>
       <div className="chatIcon">
         <div style={{ borderRadius: "25px", backgroundColor: "#CCCCCC", width: "50px", height: "50px", position: "absolute" }}>
-          <FontAwesomeIcon icon={props.isGroup ? 'users':'user'} size="2x" className="fontAwesomeIcon" />
+          {props.isAssistant ? <img src={assistantLogo} style={{width: "50px", borderRadius: "25px"}}/>:
+          <FontAwesomeIcon icon={props.isGroup ? 'users':'user'} size="2x" className="fontAwesomeIcon" />}
         </div>
       </div>
       <div className="chatNameBlock">

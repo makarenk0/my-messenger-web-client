@@ -29,6 +29,9 @@ import MyMessage from "./MessageContainers/MyMessage";
 import SystemMessage from "./MessageContainers/SystemMessage";
 import OtherUserPublicMessage from "./MessageContainers/OtherUserPublicMessage";
 import OtherUserPrivateMessage from "./MessageContainers/OtherUserPrivateMessage";
+import GroupChatAdminPanel from "./GroupChatAdminPanel";
+import GroupChatMemberPanel from "./GroupChatMemberPanel";
+import assistantLogo from "../images/assistant_logo.jpg";
 
 const ChatScreen = (props) => {
   console.log("chat opened");
@@ -38,9 +41,13 @@ const ChatScreen = (props) => {
   const [chatName, setChatName] = useState("");
   const [reRenderFlag, setRerenderFlag] = useState(true);
   const [isGroup, setGroupFlag] = useState(false);
+
   const [membersInfo, setMembersInfo] = useState([]);
+  const [removedMembersInfo, setRemovedMembersInfo] = useState([]);
+
   const [selectedMessagesNum, setSelectedMessagesNum] = useState(0);
   const [isAssistant, setAssistantFlag] = useState(false);
+  const [groupChatPanelShow, setGroupChatPanelShow] = useState(false);
   const messagesEnd = useRef(null);
 
   const scrollToBottom = (scrollType) => {
@@ -83,7 +90,7 @@ const ChatScreen = (props) => {
         props.sendDataToServer("3", true, finUsersObj, (response) => {
           if (response.Status == "success") {
             setMembersInfo([
-              ...membersInfo,
+              //...membersInfo,
               ...response.Users,
               ...membersPresentLocally,
             ]);
@@ -99,10 +106,26 @@ const ChatScreen = (props) => {
           }
         });
       } else {
-        setMembersInfo([...membersInfo, ...membersPresentLocally]);
+        setMembersInfo([...membersPresentLocally]);
       }
     });
   };
+
+  useEffect(() => {
+    let removedMembersIds = allMessages
+      .filter((x) => {
+        return (
+          x.Sender != "System" &&
+          x.Sender != "assistant" &&
+          membersInfo.findIndex((y) => y.UserId === x.Sender) == -1
+        );
+      })
+      .map((x) => x.Sender);
+    let uniqueMembers = [...new Set(removedMembersIds)];
+    if (uniqueMembers.length > 0) {
+      getRemovedMembersInfo(uniqueMembers);
+    }
+  }, [membersInfo]);
 
   // useEffect(() => {
   //   console.log(membersInfo);
@@ -153,7 +176,6 @@ const ChatScreen = (props) => {
 
   //getting chat data
   useEffect(() => {
-    
     let getChatPromise = new Promise((resolve, reject) => {
       props.loadDocFromDB(chatId, (docs) => {
         if (docs.length > 0) {
@@ -186,6 +208,7 @@ const ChatScreen = (props) => {
       });
   }, [props.chatId]);
 
+  // TO DO: complete for new users or admin change
   useEffect(() => {
     props.subscribeToUpdate("5", "chatscreen", (data) => {
       if (data.ChatId == chatId) {
@@ -193,6 +216,10 @@ const ChatScreen = (props) => {
           x["isSelected"] = false;
           return x;
         });
+        if (data.Members != null) {
+          console.log("DATA CHAT MEMBERS:");
+          getAllMembers(data.Members);
+        }
         setAllMessages([...allMessages, ...newMessages]);
         setRerenderFlag(!reRenderFlag);
         scrollToBottom("smooth");
@@ -236,17 +263,27 @@ const ChatScreen = (props) => {
   };
 
   useEffect(() => {
-    scrollToBottom("auto")
-  }, [chatName])
+    scrollToBottom("auto");
+  }, [chatName]);
+
+  const getRemovedMembersInfo = (ids) => {
+    let finUsersObj = {
+      SessionToken: props.connectionReducer.connection.current.sessionToken,
+      UserIds: ids,
+    };
+    console.log(finUsersObj);
+    props.sendDataToServer("3", true, finUsersObj, (response) => {
+      if (response.Status == "success") {
+        setRemovedMembersInfo([...response.Users]);
+      } else {
+        console.log(response.Status);
+        console.log(response.Details);
+      }
+    });
+  };
 
   const renderItem = (x) => {
     console.log(x.isSelected);
-
-    let memberInfoIndex = membersInfo.findIndex((y) => y.UserId == x.Sender);
-    let memberInfo;
-    if (memberInfoIndex != -1) {
-      memberInfo = membersInfo[memberInfoIndex];
-    }
 
     if (
       props.connectionReducer.connection.current.currentUser.UserId === x.Sender
@@ -260,8 +297,22 @@ const ChatScreen = (props) => {
         />
       );
     } else if (x.Sender == "System") {
-      return (<SystemMessage key={x._id} id={x._id} body={x.Body} />);
+      return <SystemMessage key={x._id} id={x._id} body={x.Body} />;
     } else if (isGroup) {
+      console.log("IN GROUP");
+      // let memberInfo = findSenderInfo(x.Sender)
+
+      let memberInfoIndex = membersInfo.findIndex((y) => y.UserId == x.Sender);
+      let memberInfo;
+      if (memberInfoIndex != -1) {
+        memberInfo = membersInfo[memberInfoIndex];
+      } else {
+        let removedMemberInfoIndex = removedMembersInfo.findIndex(
+          (y) => y.UserId == x.Sender
+        );
+        memberInfo = removedMembersInfo[removedMemberInfoIndex];
+      }
+
       let senderName =
         memberInfo == null
           ? ""
@@ -338,25 +389,68 @@ const ChatScreen = (props) => {
     console.log("end reached");
   };
 
+  const displayPublicChatInfo = () => {
+    setGroupChatPanelShow(!groupChatPanelShow);
+  };
+
   const leavePublicChat = () => {
     let sendObj = {
       EventType: 1,
       ChatId: chatId,
-      EventData: {}
-    }
+      EventData: {},
+    };
     props.sendDataToServer("p", true, sendObj, (response) => {
-      if(response.Status==="success"){
-        props.removeDocFromDB(chatId, () =>{})
-        props.onLeaveChat()
-      }
-      else{
-        console.log(response)
+      if (response.Status === "success") {
+        
+        let removeChatPromise = new Promise((resolve, reject) => {
+          props.removeDocFromDB(chatId, () => {
+            resolve()
+          });
+        })
+        removeChatPromise.then(() => {
+          let loadPresentChats = new Promise((resolve, reject) => {
+            props.loadDocFromDB("localChatsIds", (docs) => {
+              resolve(docs);
+            });
+          });
+          loadPresentChats.then((data) => {
+            let updatedLocalChatIds = data[0].ChatIds.filter((x) => x != chatId);
+            props.saveDocToDB({ _id: "localChatsIds", ChatIds: updatedLocalChatIds }, () => {});
+          });
+        })
+        props.onLeaveChat();
+      } else {
+        console.log(response);
       }
     });
-  }
+  };
 
   return (
-    <div style={chatId == null ? {display: "none"} : {display: "block"}}>
+    <div style={chatId == null ? { display: "none" } : { display: "block" }}>
+      {props.isAdmin ? (
+        <GroupChatAdminPanel
+          chatId={props.chatId}
+          chatName={chatName}
+          membersInfo={membersInfo}
+          showPublicChats={groupChatPanelShow}
+          leaveChat={leavePublicChat}
+          onClose={(flag) => {
+            setGroupChatPanelShow(flag);
+          }}
+        />
+      ) : (
+        <GroupChatMemberPanel
+          chatId={props.chatId}
+          chatName={chatName}
+          membersInfo={membersInfo}
+          showPublicChats={groupChatPanelShow}
+          leaveChat={leavePublicChat}
+          onClose={(flag) => {
+            setGroupChatPanelShow(flag);
+          }}
+        />
+      )}
+
       <div className="chatHeader">
         <div className="iconContainer">
           <div
@@ -369,11 +463,12 @@ const ChatScreen = (props) => {
               height: "50px",
             }}
           >
+            {isAssistant ? <img src={assistantLogo} style={{width: "50px", borderRadius: "25px"}}/>:
             <FontAwesomeIcon
               icon={isGroup ? "users" : "user"}
               size="2x"
               className="fontAwesomeIcon"
-            />
+            />}
           </div>
         </div>
         <div className="chatName">
@@ -381,7 +476,12 @@ const ChatScreen = (props) => {
         </div>
         <div>
           <div className="headerButtons">
-            <Button style={{display: isGroup ? "block" : "none"}} onClick={leavePublicChat}>Leave</Button>
+            <Button
+              style={{ display: isGroup ? "block" : "none" }}
+              onClick={displayPublicChatInfo}
+            >
+              Info
+            </Button>
             <Button
               style={{ display: selectedMessagesNum > 0 ? "block" : "none" }}
               onClick={deleteMessages}
