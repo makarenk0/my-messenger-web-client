@@ -26,6 +26,8 @@ import {
   faAddressCard,
   faCommentDots,
   faSignOutAlt,
+  faUsersCog,
+  faUserTimes
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -38,7 +40,9 @@ library.add(
   faPaperPlane,
   faAddressCard,
   faCommentDots,
-  faSignOutAlt
+  faSignOutAlt,
+  faUsersCog,
+  faUserTimes
 );
 
 const store = createStore(

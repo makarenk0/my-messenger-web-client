@@ -42,7 +42,7 @@ const localDBReducer = (state = INITIAL_STATE, action) => {
       action.payload.callback(results)
       return state;
     case "REMOVE_DOC_BY_ID":
-      localStorage.removeItem(action.payload.id)
+      localStorage.removeItem(action.payload._id)
       action.payload.callback()
       return state;
     case "ADD_ONE_TO_ARRAY":

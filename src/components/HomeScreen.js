@@ -57,6 +57,7 @@ const HomeScreen = (props) => {
         Messages: chat.NewMessages,
         NewMessagesNum: newMessages.length,
         IsGroup: chat.IsGroup,
+        Admin: chat.Admin,
         LastMessageId: newMessages[newMessages.length - 1]._id,
       },
       (err, newDoc) => {}
@@ -98,19 +99,48 @@ const HomeScreen = (props) => {
         console.log(currentOpendChat);
         console.log("Chat update on:");
         console.log(chat.ChatId);
-        props.updateValue(
-          chat.ChatId,
-          {
-            NewMessagesNum:
-              currentOpendChat !== chat.ChatId
-                ? newElement[0].NewMessagesNum + newMessages.length
-                : 0,
-            LastMessageId: newMessages[newMessages.length - 1]._id,
-          },
-          () => {
-            console.log("New messages counter updated");
+
+        let updateChatObj = {
+          NewMessagesNum:
+            currentOpendChat !== chat.ChatId
+              ? newElement[0].NewMessagesNum + newMessages.length
+              : 0,
+          LastMessageId: newMessages[newMessages.length - 1]._id,
+        };
+        if (chat.Admin !== null) updateChatObj["Admin"] = chat.Admin;
+        if (chat.Members !== null) {
+          //removing chat if we were kicked(server won't send update to us on this chat)
+          if (
+            !chat.Members.includes(
+              props.connectionReducer.connection.current.currentUser.UserId
+            )
+          ) {
+
+            let removeChatPromise = new Promise((resolve, reject) => {
+              props.removeDocFromDB(chat.ChatId, () => {
+                resolve()
+              });
+            })
+            removeChatPromise.then(() => {
+              let loadPresentChats = new Promise((resolve, reject) => {
+                props.loadDocFromDB("localChatsIds", (docs) => {
+                  resolve(docs);
+                });
+              });
+              loadPresentChats.then((data) => {
+                let updatedLocalChatIds = data[0].ChatIds.filter((x) => x != chat.ChatId);
+                props.saveDocToDB({ _id: "localChatsIds", ChatIds: updatedLocalChatIds }, () => {});
+              });
+            })
+
+            return;
           }
-        );
+          updateChatObj["Members"] = chat.Members;
+        }
+
+        props.updateValue(chat.ChatId, updateChatObj, () => {
+          console.log("New messages counter updated");
+        });
       });
     });
   };
@@ -125,20 +155,32 @@ const HomeScreen = (props) => {
         //update counter only in case there is an update
         x.newMessagesNum +=
           currentOpendChat !== x.chatId ? update.newMessagesNum : 0;
+        if (update.admin !== null) x.admin = update.admin;
+        if (update.chatMembers !== null) {
+          if (!update.chatMembers.includes(props.connectionReducer.connection.current.currentUser.UserId)) {
+            if(currentOpendChat == update.chatId) setCurrentChat(null);
+            return null;
+          }
+          x.chatMembers = update.chatMembers;
+        }
       }
       return x;
     });
+    local = local.filter((x) => x != null);
 
     //adding new chats
     let newChats = updated.filter((x) => x.isNew);
-    local.unshift(
-      ...newChats.map((x) => {
-        if (x.chatName === chatName) {
-          x.newMessagesNum = 0;
-        }
-        return x;
-      })
-    );
+
+    let currentChatInAccount = newChats.map((x) => {
+      if (x.chatName === chatName) {
+        x.newMessagesNum = 0;
+      }
+      return x;
+    })
+    currentChatInAccount.forEach(x => {
+      local.splice(1, 0, x);
+    })
+    
 
     //applying changes
     console.log("Changing all chats data to display");
@@ -168,19 +210,20 @@ const HomeScreen = (props) => {
         chatMembers: data.Members,
         isNew: data.IsNew,
         isGroup: data.IsGroup,
+        admin: data.Admin,
         newMessagesNum: data.NewMessages.length,
       });
       updateAllChatsToDisplay(allChats, ChatRepresentorsUpdatedData);
     });
   }, [allChats, currentOpendChat]);
 
-  const zeroPacketRequest = (LastChatsMessages, ChatRepresentorsLocalData) => {
+  const zeroPacketRequest = (LastChatsData, ChatRepresentorsLocalData) => {
     let ChatRepresentorsUpdatedData = []; // this array will be a response data for "LastChatsMessages" array
 
     let regObj = {
       SessionToken: props.connectionReducer.connection.current.sessionToken,
       SubscriptionPacketNumber: "5", //packet number which server will use for real-time update
-      LastChatsMessages: LastChatsMessages,
+      LastChatsData: LastChatsData,
     };
 
     //after "LastChatsMessages" array formed - send it to server and subscribe for real-time update on packet number 5
@@ -207,6 +250,7 @@ const HomeScreen = (props) => {
             chatMembers: element.Members,
             isNew: element.IsNew,
             isGroup: element.IsGroup,
+            admin: element.Admin,
             newMessagesNum: element.NewMessages.length,
           });
           // -----------------------
@@ -223,55 +267,68 @@ const HomeScreen = (props) => {
   useEffect(() => {
     props.loadDB("localDB");
 
-    let localChatsRes;
-    props.loadDocFromDB("localChatsIds", (docs) => {
-      localChatsRes = docs;
+    //let localChatsRes;
+    let loadPresentChats = new Promise((resolve, reject) => {
+      props.loadDocFromDB("localChatsIds", (docs) => {
+        resolve(docs);
+      });
     });
-
-    console.log(localChatsRes);
-    if (localChatsRes.length == 0) {
-      let initChats = new Promise((resolve, reject) => {
-        props.saveDocToDB({ _id: "localChatsIds", ChatIds: [] }, () => {
-          console.log("Local chats initialized");
-          resolve();
+    loadPresentChats.then((localChatsRes) => {
+      console.log(localChatsRes);
+      if (localChatsRes.length == 0) {
+        let initChats = new Promise((resolve, reject) => {
+          props.saveDocToDB({ _id: "localChatsIds", ChatIds: [] }, () => {
+            console.log("Local chats initialized");
+            resolve();
+          });
         });
-      });
-      initChats.then(() => {
+        initChats.then(() => {
+          zeroPacketRequest([], []);
+        });
+      } else if (localChatsRes[0].ChatIds.length == 0) {
         zeroPacketRequest([], []);
-      });
-    } else if (localChatsRes[0].ChatIds.length == 0) {
-      zeroPacketRequest([], []);
-    } else {
-      let LastChatsMessages = []; //this array will be send to server and server will determine which new messages do you need (or new chats)
-      var ChatRepresentorsLocalData = []; // this array is formed with data of chats which are stored locally
+      } else {
+        let LastChatsData = []; //this array will be send to server and server will determine which new messages do you need (or new chats)
+        var ChatRepresentorsLocalData = []; // this array is formed with data of chats which are stored locally
 
-      localChatsRes[0].ChatIds.forEach((chatId) => {
-        //we need only projections (Only "LastMessageId" field, "ChatName" field and "Members" field )
-        props.getProjected(
-          chatId,
-          ["LastMessageId", "ChatName", "Members", "NewMessagesNum", "IsGroup"],
-          (lastMessageId) => {
-            //pushing data from db to array
-            ChatRepresentorsLocalData.push({
-              chatId: chatId,
-              chatName: lastMessageId[0].ChatName,
-              chatMembers: lastMessageId[0].Members,
-              isGroup: lastMessageId[0].IsGroup,
-              newMessagesNum: lastMessageId[0].NewMessagesNum, //TO DO: create a field of number of new messages in db
-            });
-            //pushing "ChatId" and "LastMessageId" to array which will be send to server
-            LastChatsMessages.push({
-              ChatId: chatId,
-              LastMessageId: lastMessageId[0].LastMessageId,
-            });
-          }
-        );
-        //--------------------------------------------------------------------------------------------
-      });
-      // waiting for all requests are completed on database
+        localChatsRes[0].ChatIds.forEach((chatId) => {
+          //we need only projections (Only "LastMessageId" field, "ChatName" field and "Members" field )
+          props.getProjected(
+            chatId,
+            [
+              "LastMessageId",
+              "ChatName",
+              "Members",
+              "NewMessagesNum",
+              "IsGroup",
+              "Admin",
+            ],
+            (lastMessageId) => {
+              //pushing data from db to array
+              ChatRepresentorsLocalData.push({
+                chatId: chatId,
+                chatName: lastMessageId[0].ChatName,
+                chatMembers: lastMessageId[0].Members,
+                isGroup: lastMessageId[0].IsGroup,
+                admin: lastMessageId[0].Admin,
+                newMessagesNum: lastMessageId[0].NewMessagesNum, //TO DO: create a field of number of new messages in db
+              });
+              //pushing "ChatId" and "LastMessageId" to array which will be send to server
+              LastChatsData.push({
+                ChatId: chatId,
+                Members: lastMessageId[0].Members,
+                Admin: lastMessageId[0].Admin,
+                LastMessageId: lastMessageId[0].LastMessageId,
+              });
+            }
+          );
+          //--------------------------------------------------------------------------------------------
+        });
+        // waiting for all requests are completed on database
 
-      zeroPacketRequest(LastChatsMessages, ChatRepresentorsLocalData);
-    }
+        zeroPacketRequest(LastChatsData, ChatRepresentorsLocalData);
+      }
+    });
   }, []);
 
   // in case of chat is pressed (navigating to "ChatScreen" and passing chatId )
@@ -290,11 +347,18 @@ const HomeScreen = (props) => {
     setNewUserId(newUserId);
   };
 
-
   const leaveChat = () => {
-    setAllChats(allChats.filter(x => x.chatId !== currentOpendChat))
+    setAllChats(allChats.filter((x) => x.chatId !== currentOpendChat));
     setCurrentChat(null);
-  }
+  };
+
+  const isAdminInOpenedChat = () => {
+    let index = allChats.findIndex((x) => x.chatId === currentOpendChat);
+    return index == -1
+      ? false
+      : allChats[index].admin ===
+          props.connectionReducer.connection.current.currentUser.UserId;
+  };
 
   return (
     <div className="homeScreenContainer">
@@ -333,12 +397,10 @@ const HomeScreen = (props) => {
             props.closeWebsocketConnection();
             history.goBack();
           }}
-          contactsOnClick={
-            () => {
-              setPane(false);
-              setShowOtherUsers(!showOtherUsers);
-            }
-          }
+          contactsOnClick={() => {
+            setPane(false);
+            setShowOtherUsers(!showOtherUsers);
+          }}
           publicChatsOnClick={() => {
             setPane(false);
             setShowPublicChats(!showPublicChats);
@@ -384,6 +446,7 @@ const HomeScreen = (props) => {
             isGroup={x.isGroup}
             isSelected={x.chatId === currentOpendChat}
             onPress={chatPressed}
+            isAssistant={props.connectionReducer.connection.current.currentUser.AssistantChatId === x.chatId}
           ></ChatRepresenter>
         ))}
       </div>
@@ -394,6 +457,7 @@ const HomeScreen = (props) => {
             chatId={currentOpendChat}
             chatName={chatName}
             newUserId={newUserId}
+            isAdmin={isAdminInOpenedChat()}
             setChatId={(id) => setCurrentChat(id)}
             onLeaveChat={() => leaveChat()}
           ></ChatScreen>
