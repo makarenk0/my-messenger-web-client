@@ -341,9 +341,8 @@ const ChatScreen = (props) => {
   const leavePublicChat = () => {
     let sendObj = {
       EventType: 1,
-      Event: {
-        ChatId: chatId
-      }
+      ChatId: chatId,
+      EventData: {}
     }
     props.sendDataToServer("p", true, sendObj, (response) => {
       if(response.Status==="success"){

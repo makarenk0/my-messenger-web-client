@@ -57,6 +57,7 @@ const HomeScreen = (props) => {
         Messages: chat.NewMessages,
         NewMessagesNum: newMessages.length,
         IsGroup: chat.IsGroup,
+        Admin: chat.Admin,
         LastMessageId: newMessages[newMessages.length - 1]._id,
       },
       (err, newDoc) => {}
@@ -98,15 +99,22 @@ const HomeScreen = (props) => {
         console.log(currentOpendChat);
         console.log("Chat update on:");
         console.log(chat.ChatId);
-        props.updateValue(
-          chat.ChatId,
+        
+        let updateChatObj = 
           {
             NewMessagesNum:
               currentOpendChat !== chat.ChatId
                 ? newElement[0].NewMessagesNum + newMessages.length
                 : 0,
             LastMessageId: newMessages[newMessages.length - 1]._id,
-          },
+          }
+        if(chat.Admin !== null) updateChatObj["Admin"] = chat.Admin
+        if(chat.Members !== null) updateChatObj["Members"] = chat.Members
+        
+
+        props.updateValue(
+          chat.ChatId,
+          updateChatObj,
           () => {
             console.log("New messages counter updated");
           }
@@ -168,19 +176,20 @@ const HomeScreen = (props) => {
         chatMembers: data.Members,
         isNew: data.IsNew,
         isGroup: data.IsGroup,
+        admin: data.Admin,
         newMessagesNum: data.NewMessages.length,
       });
       updateAllChatsToDisplay(allChats, ChatRepresentorsUpdatedData);
     });
   }, [allChats, currentOpendChat]);
 
-  const zeroPacketRequest = (LastChatsMessages, ChatRepresentorsLocalData) => {
+  const zeroPacketRequest = (LastChatsData, ChatRepresentorsLocalData) => {
     let ChatRepresentorsUpdatedData = []; // this array will be a response data for "LastChatsMessages" array
 
     let regObj = {
       SessionToken: props.connectionReducer.connection.current.sessionToken,
       SubscriptionPacketNumber: "5", //packet number which server will use for real-time update
-      LastChatsMessages: LastChatsMessages,
+      LastChatsData: LastChatsData,
     };
 
     //after "LastChatsMessages" array formed - send it to server and subscribe for real-time update on packet number 5
@@ -207,6 +216,7 @@ const HomeScreen = (props) => {
             chatMembers: element.Members,
             isNew: element.IsNew,
             isGroup: element.IsGroup,
+            admin: element.Admin,
             newMessagesNum: element.NewMessages.length,
           });
           // -----------------------
@@ -242,14 +252,14 @@ const HomeScreen = (props) => {
     } else if (localChatsRes[0].ChatIds.length == 0) {
       zeroPacketRequest([], []);
     } else {
-      let LastChatsMessages = []; //this array will be send to server and server will determine which new messages do you need (or new chats)
+      let LastChatsData = []; //this array will be send to server and server will determine which new messages do you need (or new chats)
       var ChatRepresentorsLocalData = []; // this array is formed with data of chats which are stored locally
 
       localChatsRes[0].ChatIds.forEach((chatId) => {
         //we need only projections (Only "LastMessageId" field, "ChatName" field and "Members" field )
         props.getProjected(
           chatId,
-          ["LastMessageId", "ChatName", "Members", "NewMessagesNum", "IsGroup"],
+          ["LastMessageId", "ChatName", "Members", "NewMessagesNum", "IsGroup", "Admin"],
           (lastMessageId) => {
             //pushing data from db to array
             ChatRepresentorsLocalData.push({
@@ -257,11 +267,14 @@ const HomeScreen = (props) => {
               chatName: lastMessageId[0].ChatName,
               chatMembers: lastMessageId[0].Members,
               isGroup: lastMessageId[0].IsGroup,
+              admin: lastMessageId[0].Admin,
               newMessagesNum: lastMessageId[0].NewMessagesNum, //TO DO: create a field of number of new messages in db
             });
             //pushing "ChatId" and "LastMessageId" to array which will be send to server
-            LastChatsMessages.push({
+            LastChatsData.push({
               ChatId: chatId,
+              Members: lastMessageId[0].Members,
+              Admin: lastMessageId[0].Admin,
               LastMessageId: lastMessageId[0].LastMessageId,
             });
           }
@@ -270,7 +283,7 @@ const HomeScreen = (props) => {
       });
       // waiting for all requests are completed on database
 
-      zeroPacketRequest(LastChatsMessages, ChatRepresentorsLocalData);
+      zeroPacketRequest(LastChatsData, ChatRepresentorsLocalData);
     }
   }, []);
 
