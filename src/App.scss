@@ -206,13 +206,13 @@
   .chatScreen{
     display: table-cell;
     vertical-align: top;
-    height: 100vh;
+    //height: 90vh;
     .chatHeader{
       background-color: #100C08;
       height: 6.6vh;
-      display: table;
+      display: grid;
       width: 100%;
-
+      grid-template-columns: 60px 300px auto;
       .headerButtons{
         margin-top: 13px;
         float: right;
@@ -223,9 +223,9 @@
         }
       }
       .iconContainer{
+        display: grid;
         vertical-align: top;
         width: 50px;
-        display: table-cell;
         .fontAwesomeIcon {
           margin-left: 50%;
           margin-top: 8px;
@@ -234,7 +234,6 @@
       }
       .chatName{
         vertical-align: top;
-        display: table-cell;
         p{
           margin-left: 30px;
           font-size: 30px;
@@ -249,7 +248,7 @@
     }
     .messageThread{
       padding-top: 20px;
-      height: 87.3vh;
+      height: 87.2vh;
       overflow-y: scroll;
     }
     .sendMessageBox{

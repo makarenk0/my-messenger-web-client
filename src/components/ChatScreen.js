@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, createRef } from "react";
+import React, { useState, useEffect, useRef, useFocus } from "react";
 
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
@@ -49,6 +49,7 @@ const ChatScreen = (props) => {
   const [isAssistant, setAssistantFlag] = useState(false);
   const [groupChatPanelShow, setGroupChatPanelShow] = useState(false);
   const messagesEnd = useRef(null);
+
 
   const scrollToBottom = (scrollType) => {
     messagesEnd.current?.scrollIntoView({ behavior: scrollType });
@@ -168,6 +169,7 @@ const ChatScreen = (props) => {
         });
       }
     }
+    //inputField.input.focus()
   };
 
   const isEmptyOrSpaces = (str) => {
@@ -206,6 +208,7 @@ const ChatScreen = (props) => {
         setAllMessages([]);
         setChatName(props.chatName);
       });
+      //inputField.focus()
   }, [props.chatId]);
 
   // TO DO: complete for new users or admin change
@@ -501,6 +504,12 @@ const ChatScreen = (props) => {
         <input
           placeholder="Enter your message"
           value={toSend}
+          ref={input => input && input.focus()}
+          onKeyDown={(e) => {
+            if(e.key == 'Enter'){
+              sendMessage();
+            }
+          }}
           onChange={(e) => {
             setSendMessage(e.target.value);
           }}
