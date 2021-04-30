@@ -189,7 +189,7 @@ const GroupChatAdminPanel = (props) => {
               <Button
                 variant="light"
                 onClick={() => {
-                  userAddedPressed(item.UserId, fullname);
+                  kickMember(item.UserId, fullname);
                 }}
               >
                 <FontAwesomeIcon
@@ -261,7 +261,7 @@ const GroupChatAdminPanel = (props) => {
     });
   };
 
-  const userAddedPressed = (userId, userName) => {
+  const kickMember = (userId, userName) => {
     let users = chatUsers;
     let sendObj = {
       EventType: 2,

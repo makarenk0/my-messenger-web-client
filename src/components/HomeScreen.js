@@ -155,6 +155,7 @@ const HomeScreen = (props) => {
         //update counter only in case there is an update
         x.newMessagesNum +=
           currentOpendChat !== x.chatId ? update.newMessagesNum : 0;
+        
         if (update.admin !== null) x.admin = update.admin;
         if (update.chatMembers !== null) {
           if (!update.chatMembers.includes(props.connectionReducer.connection.current.currentUser.UserId)) {
@@ -171,12 +172,14 @@ const HomeScreen = (props) => {
     //adding new chats
     let newChats = updated.filter((x) => x.isNew);
 
+    //if current opende chat is new private chat
     let currentChatInAccount = newChats.map((x) => {
       if (x.chatName === chatName) {
         x.newMessagesNum = 0;
       }
       return x;
     })
+
     currentChatInAccount.forEach(x => {
       local.splice(1, 0, x);
     })

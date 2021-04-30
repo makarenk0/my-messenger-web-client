@@ -38,29 +38,56 @@ const connectionReducer = (state = INITIAL_STATE, action) => {
       // });
 
       current["establishedConnection"] = websocket;
-
       current.establishedConnection.onmessage = (e) => {
-        let response = e.data;
-        let payloadB64 = response.substr(1, response.length - 2);
-        let fromBase64 = atob(payloadB64);
-        console.log(fromBase64);
+        var reader = new FileReader();
+        reader.addEventListener("loadend", function () {
+          let response = reader.result;
+          console.log(response)
+          let payloadB64 = response.substr(1, response.length - 2);
+          let fromBase64 = atob(payloadB64);
+          console.log(fromBase64);
 
-        let onReceive = onReceiveCallbacks.filter(
-          (x) => x.type == response.charAt(0)
-        );
-        onReceive.forEach((el) => {
-          if (el.disposable) {
-            // if disposable use callback once and then remove object from callbacks array
-            let index = onReceiveCallbacks.findIndex(
-              (x) => x.type == response.charAt(0)
-            );
-            onReceiveCallbacks.splice(index, 1);
-            console.log("Callback with type " + el.type + " was disposed");
-          }
-          let getObj = JSON.parse(fromBase64);
-          el.callback(getObj);
+          let onReceive = onReceiveCallbacks.filter(
+            (x) => x.type == response.charAt(0)
+          );
+          onReceive.forEach((el) => {
+            if (el.disposable) {
+              // if disposable use callback once and then remove object from callbacks array
+              let index = onReceiveCallbacks.findIndex(
+                (x) => x.type == response.charAt(0)
+              );
+              onReceiveCallbacks.splice(index, 1);
+              console.log("Callback with type " + el.type + " was disposed");
+            }
+            let getObj = JSON.parse(fromBase64);
+            el.callback(getObj);
+          });
         });
+        reader.readAsText(e.data);
       };
+
+      // current.establishedConnection.onmessage = (e) => {
+      //   let response = e.data;
+      //   let payloadB64 = response.substr(1, response.length - 2);
+      //   let fromBase64 = atob(payloadB64);
+      //   console.log(fromBase64);
+
+      //   let onReceive = onReceiveCallbacks.filter(
+      //     (x) => x.type == response.charAt(0)
+      //   );
+      //   onReceive.forEach((el) => {
+      //     if (el.disposable) {
+      //       // if disposable use callback once and then remove object from callbacks array
+      //       let index = onReceiveCallbacks.findIndex(
+      //         (x) => x.type == response.charAt(0)
+      //       );
+      //       onReceiveCallbacks.splice(index, 1);
+      //       console.log("Callback with type " + el.type + " was disposed");
+      //     }
+      //     let getObj = JSON.parse(fromBase64);
+      //     el.callback(getObj);
+      //   });
+      // };
       // current.establishedConnection.on('data', function (data) {
       //   let result = '';
       //   for (var i = 0; i < data.length; i++) {
